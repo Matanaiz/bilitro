@@ -18,7 +18,7 @@ package com.bilitro.model.hand;
  * </pre>
  * 得分 = 初始分数 × 初始倍数（功能牌加成由 ScoreCalculator 叠加）。
  */
-public enum HandType {
+public enum HandType implements com.bilitro.model.game.GameSession.HandTypeView {
     HIGH_CARD(1, 5, 1),          // 高牌
     PAIR(2, 10, 2),              // 对子
     TWO_PAIR(3, 20, 2),          // 两对
@@ -57,5 +57,21 @@ public enum HandType {
     /** 不含功能牌加成的基础得分 = 初始分数 × 初始倍数。 */
     public int baseTotal() {
         return baseScore * baseMultiplier;
+    }
+
+    /** 中文显示名（供 view 层展示，实现 GameSession.HandTypeView）。 */
+    @Override
+    public String displayName() {
+        return switch (this) {
+            case HIGH_CARD -> "高牌";
+            case PAIR -> "对子";
+            case TWO_PAIR -> "两对";
+            case THREE_OF_A_KIND -> "三条";
+            case STRAIGHT -> "顺子";
+            case FLUSH -> "同花";
+            case FULL_HOUSE -> "葫芦";
+            case FOUR_OF_A_KIND -> "四条";
+            case STRAIGHT_FLUSH -> "同花顺";
+        };
     }
 }
