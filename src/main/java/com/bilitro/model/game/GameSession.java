@@ -28,8 +28,21 @@ public interface GameSession {
     /** 弃牌重抽：次数-1、补牌；次数为 0 时不允许调用。 */
     void discard(List<Card> selected);
 
-    /** 判断当前关卡是否已通关 / 是否已失败。 */
+    /** 本局累计得分（结算与最高分记录用，见结束判定流程图"记录分数"）。 */
+    int totalScore();
+
+    /**
+     * 结束判定（见结束判定流程图）：
+     * 累计得分 >= 目标得分 → 第 8 关则 VICTORY，否则 LEVEL_CLEARED；
+     * 未达标且剩余出牌数 == 0 → FAILED；否则 ONGOING。
+     */
     RoundOutcome outcome();
+
+    /**
+     * 领取通关奖励（答复 5）：固定 4 代币 + 每剩余 1 次出牌 1 代币
+     * + 上回合每剩余 5 代币 1 代币利息。返回本次入账总额。
+     */
+    int claimLevelClearReward();
 
     /** 进入下一关：加载关卡规则、重置次数与牌组。 */
     void advanceLevel(LevelRule rule);
@@ -43,5 +56,5 @@ public interface GameSession {
         String displayName();
     }
 
-    enum RoundOutcome { ONGOING, LEVEL_CLEARED, FAILED }
+    enum RoundOutcome { ONGOING, LEVEL_CLEARED, VICTORY, FAILED }
 }

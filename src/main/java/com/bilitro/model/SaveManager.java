@@ -5,7 +5,9 @@ import java.util.Optional;
 
 /**
  * 自动存档（需求 2.2.7）与最高分记录（需求 2.2.4）。
- * TODO: 存档格式（JSON / Java 序列化）与存储路径待确认。
+ * 已定稿（答复 14/15）：存档格式 JSON，文件创建在本地目录；
+ * 音效/BGM 开关状态与存档同文件持久化。
+ * 实现提示：需在 pom.xml 引入 JSON 库（如 Jackson 或 Gson）。
  */
 public interface SaveManager {
 
