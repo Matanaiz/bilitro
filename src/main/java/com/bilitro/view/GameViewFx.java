@@ -265,6 +265,9 @@ public class GameViewFx implements GameView {
                 previewMultLabel.setText(String.valueOf(step.multAfter()));
             }));
         }
+        // 末尾补一个空关键帧：最后一张牌（及整手结算类功能牌）生效后多停一拍再落账
+        timeline.getKeyFrames().add(new javafx.animation.KeyFrame(
+                javafx.util.Duration.millis(400.0 * (steps.size() + 1)), e -> { }));
         timeline.setOnFinished(e -> onFinished.run());
         timeline.play();
     }
