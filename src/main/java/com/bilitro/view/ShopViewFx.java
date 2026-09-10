@@ -2,6 +2,7 @@ package com.bilitro.view;
 
 import com.bilitro.controller.ShopController;
 import com.bilitro.model.player.SpecialCard;
+import com.bilitro.view.components.SpecialCardNode;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
@@ -15,7 +16,8 @@ import java.util.List;
 
 /**
  * 商店界面的 JavaFX 实现（P0 纯色块文字版）。
- * 顶部代币与操作，中央商品列表（名称/描述/价格/购买按钮）。
+ * 顶部代币与操作（刷新显示费用），中央商品列表（卡牌样式 + 描述/价格/购买），
+ * 下方"我的功能牌"栏（卡牌样式 + 出售按钮，半价返还）。
  */
 public class ShopViewFx implements ShopView {
 
@@ -23,7 +25,8 @@ public class ShopViewFx implements ShopView {
 
     private final BorderPane root = new BorderPane();
     private final Label coinsLabel = new Label();
-    private final VBox goodsArea = new VBox(10);
+    private final HBox goodsArea = new HBox(16);
+    private final HBox ownedArea = new HBox(12);
     private final Button refreshButton = new Button("刷新商品");
     private final Button leaveButton = new Button("离开商店，进入下一关");
 
@@ -55,14 +58,22 @@ public class ShopViewFx implements ShopView {
         top.setAlignment(Pos.CENTER_LEFT);
         top.setPadding(new Insets(14));
 
-        goodsArea.setAlignment(Pos.TOP_CENTER);
+        goodsArea.setAlignment(Pos.CENTER);
         goodsArea.setPadding(new Insets(20));
+
+        Label ownedTitle = new Label("我的功能牌");
+        ownedTitle.setStyle("-fx-font-size: 15px; -fx-text-fill: #bcd;");
+        ownedArea.setAlignment(Pos.CENTER);
+        VBox ownedBox = new VBox(8, ownedTitle, ownedArea);
+        ownedBox.setAlignment(Pos.CENTER);
+        ownedBox.setPadding(new Insets(10));
 
         root.setTop(top);
         root.setCenter(goodsArea);
+        root.setBottom(ownedBox);
     }
 
-    /** 刷新商品列表与代币显示。 */
+    /** 刷新商品列表与代币显示：商品以功能牌卡牌样式展示，下方附描述/价格/购买按钮。 */
     @Override
     public void renderGoods(List<SpecialCard> goods, int coins) {
         coinsLabel.setText("代币: " + coins);
@@ -74,37 +85,50 @@ public class ShopViewFx implements ShopView {
             return;
         }
         for (SpecialCard item : goods) {
-            goodsArea.getChildren().add(goodsRow(item));
+            goodsArea.getChildren().add(goodsColumn(item));
         }
     }
 
-    /** 单个商品行：名称、描述、价格、购买按钮。 */
-    private HBox goodsRow(SpecialCard item) {
-        Label name = new Label(itemName(item));
-        name.setStyle("-fx-font-size: 17px; -fx-font-weight: bold; -fx-text-fill: white;");
+    /** 单个商品：功能牌控件 + 描述 + 价格与购买按钮。 */
+    private VBox goodsColumn(SpecialCard item) {
+        SpecialCardNode node = new SpecialCardNode(item);
         Label desc = new Label(item.description());
-        desc.setStyle("-fx-font-size: 13px; -fx-text-fill: #bcd;");
-        VBox texts = new VBox(4, name, desc);
-
-        Label price = new Label("$" + item.price());
-        price.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #ffd54f;");
-        Button buy = new Button("购买");
+        desc.setWrapText(true);
+        desc.setMaxWidth(150);
+        desc.setStyle("-fx-font-size: 12px; -fx-text-fill: #bcd;");
+        Button buy = new Button("$" + item.price() + " 购买");
         buy.setOnAction(e -> controller.onBuy(item));
 
-        HBox row = new HBox(16, texts, price, buy);
-        row.setAlignment(Pos.CENTER_LEFT);
-        row.setPadding(new Insets(12, 20, 12, 20));
-        row.setStyle("-fx-background-color: #16324f; -fx-background-radius: 10;");
-        row.setPrefWidth(560);
-        return row;
+        VBox col = new VBox(8, node, desc, buy);
+        col.setAlignment(Pos.CENTER);
+        col.setPadding(new Insets(12));
+        col.setStyle("-fx-background-color: #16324f; -fx-background-radius: 10;");
+        return col;
     }
 
-    /** 商品显示名：配置表有名用名，否则用 id。 */
-    private String itemName(SpecialCard item) {
-        if (item instanceof com.bilitro.model.player.ConfiguredSpecialCard c && !c.name().isBlank()) {
-            return c.name();
+    /** 刷新"我的功能牌"栏：每张牌下方带半价出售按钮。 */
+    @Override
+    public void renderOwned(List<SpecialCard> owned) {
+        ownedArea.getChildren().clear();
+        for (SpecialCard item : owned) {
+            Button sell = new Button("出售 +$" + sellPrice(item));
+            sell.setStyle("-fx-font-size: 11px;");
+            sell.setOnAction(e -> controller.onSell(item));
+            VBox col = new VBox(6, new SpecialCardNode(item), sell);
+            col.setAlignment(Pos.CENTER);
+            ownedArea.getChildren().add(col);
         }
-        return item.id();
+    }
+
+    /** 出售价 = 购买价的一半（与 Shop.sellPrice 口径一致）。 */
+    private int sellPrice(SpecialCard item) {
+        return item.price() / 2;
+    }
+
+    /** 刷新刷新按钮上的费用显示。 */
+    @Override
+    public void renderRefreshCost(int cost) {
+        refreshButton.setText("刷新商品（$" + cost + "）");
     }
 
     /** 购买失败提示："栏位已满" / "代币不足"。 */
@@ -112,7 +136,7 @@ public class ShopViewFx implements ShopView {
     public void showBuyFailure(String message) {
         javafx.application.Platform.runLater(() -> {
             Alert a = new Alert(Alert.AlertType.WARNING, message);
-            a.setTitle("购买失败");
+            a.setTitle("提示");
             a.setHeaderText(null);
             a.showAndWait();
         });

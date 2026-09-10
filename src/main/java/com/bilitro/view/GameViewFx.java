@@ -4,6 +4,7 @@ import com.bilitro.controller.GameController;
 import com.bilitro.model.card.Card;
 import com.bilitro.model.player.SpecialCard;
 import com.bilitro.view.components.CardNode;
+import com.bilitro.view.components.SpecialCardNode;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
@@ -290,20 +291,19 @@ public class GameViewFx implements GameView {
         deckCountLabel.setText(String.valueOf(remaining));
     }
 
-    /** 刷新功能牌栏：点击缩放反馈并弹出效果说明。 */
+    /** 刷新功能牌栏：扑克牌样式控件，点击缩放反馈并弹出效果说明。 */
     public void renderSpecialCards(List<SpecialCard> specials) {
         specialArea.getChildren().clear();
         for (SpecialCard s : specials) {
-            Button b = new Button(s.id());
-            b.setStyle("-fx-font-size: 11px;");
-            b.setOnAction(e -> {
-                b.setScaleX(0.9);
-                b.setScaleY(0.9);
+            SpecialCardNode node = new SpecialCardNode(s);
+            node.setOnMouseClicked(e -> {
+                node.setScaleX(0.88);
+                node.setScaleY(0.88);
                 controller.onInspectSpecialCard(s.id());
-                b.setScaleX(1);
-                b.setScaleY(1);
+                node.setScaleX(1);
+                node.setScaleY(1);
             });
-            specialArea.getChildren().add(b);
+            specialArea.getChildren().add(node);
         }
     }
 

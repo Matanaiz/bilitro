@@ -11,8 +11,19 @@ public interface Shop {
     /** 当前商品列表（进入商店时从功能牌池随机生成）。 */
     List<SpecialCard> goods();
 
-    /** 随机刷新商品。TODO: 刷新是否花费货币待确认。 */
-    void refresh();
+    /** 当前刷新费用（初始 2 代币，每刷新一次 +3，每次进商店重置）。 */
+    int refreshCost();
+
+    /** 随机刷新商品；代币不足时返回 false 且不刷新。 */
+    boolean refresh();
+
+    /** 出售价 = 购买价的一半。 */
+    default int sellPrice(SpecialCard item) {
+        return item.price() / 2;
+    }
+
+    /** 出售持有的功能牌：从玩家栏位移除并按半价返还代币。 */
+    void sell(SpecialCard item);
 
     /**
      * 购买：依次校验栏位上限 → 货币。

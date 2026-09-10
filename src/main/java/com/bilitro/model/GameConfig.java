@@ -26,6 +26,14 @@ public final class GameConfig {
     /** 利息：上回合每剩余 N 代币获得 1 代币。 */
     public static final int INTEREST_EVERY_N_COINS = 5;
 
+    /** 第一关目标分；之后每关 ×1.5。 */
+    public static final int LEVEL1_TARGET_SCORE = 200;
+    public static final double TARGET_SCORE_GROWTH = 1.5;
+
+    /** 商店刷新费用：初始 2 代币，每刷新一次 +3，每次进商店重置。 */
+    public static final int SHOP_REFRESH_BASE_COST = 2;
+    public static final int SHOP_REFRESH_COST_STEP = 3;
+
     private GameConfig() {
     }
 }

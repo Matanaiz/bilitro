@@ -9,6 +9,9 @@ public interface ShopController {
 
     void onRefresh();
 
+    /** 出售持有的功能牌（半价返还）。 */
+    void onSell(SpecialCard item);
+
     /** 离开商店，进入下一关。 */
     void onLeave();
 }

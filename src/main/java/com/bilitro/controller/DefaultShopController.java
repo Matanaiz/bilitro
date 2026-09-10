@@ -39,10 +39,19 @@ public class DefaultShopController implements ShopController {
         refresh();
     }
 
-    /** 刷新商品（当前免费）。 */
+    /** 刷新商品：代币不足时提示，成功后费用递增。 */
     @Override
     public void onRefresh() {
-        shop.refresh();
+        if (!shop.refresh()) {
+            view.showBuyFailure("代币不足，无法刷新");
+        }
+        refresh();
+    }
+
+    /** 出售功能牌：半价返还代币。 */
+    @Override
+    public void onSell(SpecialCard item) {
+        shop.sell(item);
         refresh();
     }
 
@@ -55,5 +64,7 @@ public class DefaultShopController implements ShopController {
     /** 全量刷新商店界面。 */
     public void refresh() {
         view.renderGoods(shop.goods(), player.coins());
+        view.renderOwned(player.specialCards());
+        view.renderRefreshCost(shop.refreshCost());
     }
 }

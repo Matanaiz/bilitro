@@ -8,6 +8,12 @@ public interface ShopView {
 
     void renderGoods(List<SpecialCard> goods, int coins);
 
+    /** 刷新"我的功能牌"栏（带出售按钮）。 */
+    void renderOwned(List<SpecialCard> owned);
+
+    /** 刷新当前刷新费用显示。 */
+    void renderRefreshCost(int cost);
+
     /** 购买失败提示："栏位已满" / "货币不足"。 */
     void showBuyFailure(String message);
 }
