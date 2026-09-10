@@ -60,10 +60,12 @@ public class ShopViewFx implements ShopView {
 
         goodsArea.setAlignment(Pos.CENTER);
         goodsArea.setPadding(new Insets(20));
+        goodsArea.setFillHeight(false); // 商品列保持固有高度，不被拉伸
 
         Label ownedTitle = new Label("我的功能牌");
         ownedTitle.setStyle("-fx-font-size: 15px; -fx-text-fill: #bcd;");
         ownedArea.setAlignment(Pos.CENTER);
+        ownedArea.setFillHeight(false); // 持有牌保持固有尺寸
         VBox ownedBox = new VBox(8, ownedTitle, ownedArea);
         ownedBox.setAlignment(Pos.CENTER);
         ownedBox.setPadding(new Insets(10));
@@ -102,6 +104,7 @@ public class ShopViewFx implements ShopView {
         VBox col = new VBox(8, node, desc, buy);
         col.setAlignment(Pos.CENTER);
         col.setPadding(new Insets(12));
+        col.setMaxWidth(190); // 商品列固定宽度，不随窗口拉伸
         col.setStyle("-fx-background-color: #16324f; -fx-background-radius: 10;");
         return col;
     }
