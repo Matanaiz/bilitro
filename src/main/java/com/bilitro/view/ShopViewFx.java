@@ -91,9 +91,10 @@ public class ShopViewFx implements ShopView {
         }
     }
 
-    /** 单个商品：功能牌控件 + 描述 + 价格与购买按钮。 */
+    /** 单个商品：功能牌控件（点击查看效果）+ 描述 + 价格与购买按钮。 */
     private VBox goodsColumn(SpecialCard item) {
         SpecialCardNode node = new SpecialCardNode(item);
+        makeInspectable(node, item);
         Label desc = new Label(item.description());
         desc.setWrapText(true);
         desc.setMaxWidth(150);
@@ -109,7 +110,7 @@ public class ShopViewFx implements ShopView {
         return col;
     }
 
-    /** 刷新"我的功能牌"栏：每张牌下方带半价出售按钮。 */
+    /** 刷新"我的功能牌"栏：每张牌下方带半价出售按钮，点击牌面查看效果。 */
     @Override
     public void renderOwned(List<SpecialCard> owned) {
         ownedArea.getChildren().clear();
@@ -117,10 +118,33 @@ public class ShopViewFx implements ShopView {
             Button sell = new Button("出售 +$" + sellPrice(item));
             sell.setStyle("-fx-font-size: 11px;");
             sell.setOnAction(e -> controller.onSell(item));
-            VBox col = new VBox(6, new SpecialCardNode(item), sell);
+            SpecialCardNode node = new SpecialCardNode(item);
+            makeInspectable(node, item);
+            VBox col = new VBox(6, node, sell);
             col.setAlignment(Pos.CENTER);
             ownedArea.getChildren().add(col);
         }
+    }
+
+    /** 让功能牌控件可点击查看效果：按下缩放反馈并弹出说明浮层。 */
+    private void makeInspectable(SpecialCardNode node, SpecialCard item) {
+        node.setOnMouseClicked(e -> {
+            node.setScaleX(0.88);
+            node.setScaleY(0.88);
+            showCardTip(item.description());
+            node.setScaleX(1);
+            node.setScaleY(1);
+        });
+    }
+
+    /** 弹功能牌说明浮层。 */
+    private void showCardTip(String description) {
+        javafx.application.Platform.runLater(() -> {
+            Alert a = new Alert(Alert.AlertType.INFORMATION, description);
+            a.setTitle("功能牌说明");
+            a.setHeaderText(null);
+            a.showAndWait();
+        });
     }
 
     /** 出售价 = 购买价的一半（与 Shop.sellPrice 口径一致）。 */

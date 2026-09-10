@@ -32,7 +32,7 @@ import java.util.Set;
  */
 public class App extends Application {
 
-    /** 第一关目标分（之后每关 ×1.5，见 GameConfig）。 */
+    /** 第一关目标分（之后每关 ×2，见 GameConfig）。 */
     private static final int LEVEL1_TARGET = com.bilitro.model.GameConfig.LEVEL1_TARGET_SCORE;
 
     private Stage stage;
@@ -119,7 +119,7 @@ public class App extends Application {
     }
 
     /**
-     * 生成下一关规则：目标分从 200 起每关 ×1.5（小组定稿），无禁用花色。
+     * 生成下一关规则：目标分从 200 起每关 ×2（小组定稿），无禁用花色。
      * TODO: 禁用花色等差异化规则稍后查表（答复 9）。
      */
     private LevelRule nextRule(int level) {
