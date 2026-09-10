@@ -340,11 +340,13 @@ public class GameViewFx implements GameView {
         alert("提示", message);
     }
 
-    /** 弹窗工具。 */
+    /** 弹窗工具（延后到下一个界面脉冲再弹，避免动画/布局回调中 showAndWait 报错）。 */
     private void alert(String title, String content) {
-        Alert a = new Alert(Alert.AlertType.INFORMATION, content);
-        a.setTitle(title);
-        a.setHeaderText(null);
-        a.showAndWait();
+        javafx.application.Platform.runLater(() -> {
+            Alert a = new Alert(Alert.AlertType.INFORMATION, content);
+            a.setTitle(title);
+            a.setHeaderText(null);
+            a.showAndWait();
+        });
     }
 }

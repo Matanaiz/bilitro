@@ -120,16 +120,18 @@ public class DefaultGameController implements GameController {
                 !selected.isEmpty() && session.remainingDiscards() > 0);
     }
 
-    /** 刷新计分预览：选中牌可出时试算牌型、积分与倍数（不显示预估总分），否则清空预览。 */
+    /**
+     * 刷新计分预览：选中牌可出时，左侧显示该牌型的初始分数与初始倍数
+     * （手牌逐张触发后在动画中逐步增长），否则清空预览。
+     */
     private void refreshPreview() {
         var eval = evaluator.evaluateDetail(selected);
         if (eval.isEmpty()) {
             view.renderPreview(null, null, null);
             return;
         }
-        var b = calculator.score(eval.get(), session.player().specialCards());
-        int chips = b.baseChips() + b.cardChips() + b.bonusChips();
-        view.renderPreview(eval.get().type().displayName(), chips, b.finalMult());
+        view.renderPreview(eval.get().type().displayName(),
+                eval.get().type().baseScore(), eval.get().type().baseMultiplier());
     }
 
     /** 检查对局结局：过关则发奖励并进入下一关，终局则交给回调。 */
