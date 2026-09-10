@@ -53,11 +53,11 @@ public class GameViewFx implements GameView {
     private final Button discardButton = new Button("弃牌");
     private final Button deckButton = new Button("查看牌组");
 
-    /** 中央计分预览区：当前选中牌的牌型、积分与倍数。 */
+    /** 中央计分过程区：选中牌型名 + 逐张计分动画的手牌横排。 */
     private final Label previewTypeLabel = new Label("未选牌");
     private final Label previewChipsLabel = valueLabel();
     private final Label previewMultLabel = valueLabel();
-    private final Label previewScoreLabel = new Label();
+    private final HBox processArea = new HBox(6);
 
     /** 创建对局界面（控制器随后通过 bindController 注入）。 */
     public GameViewFx() {
@@ -83,24 +83,45 @@ public class GameViewFx implements GameView {
         root.setRight(buildDeckCounter());
     }
 
-    /** 左侧信息栏：目标分、总分、当前积分、当前倍数、出牌/弃牌次数、关卡、代币。 */
+    /**
+     * 左侧信息栏：目标分、总分、当前积分×倍数（同一面板内横向排列，中间乘号）、
+     * 出牌/弃牌次数、关卡、代币；整体竖向排列。
+     */
     private VBox buildSidebar() {
         VBox box = new VBox(10,
                 panel("目标得分", targetLabel),
                 panel("本局总分", totalLabel),
-                panel("当前积分", previewChipsLabel),
-                panel("当前倍数", previewMultLabel),
+                chipsMultPanel(),
                 panel("出牌次数", playsLabel),
                 panel("弃牌次数", discardsLabel),
                 panel("关卡", levelLabel),
                 panel("代币", coinsLabel));
         box.setPadding(new Insets(14));
         box.setPrefWidth(190);
+        box.setMinWidth(190); // 左侧栏保底宽度
         box.setStyle("-fx-background-color: #10243a;");
         return box;
     }
 
-    /** 中央区域：上方功能牌栏，中间计分预览区，下方手牌区与操作按钮。 */
+    /** 当前积分 × 当前倍数面板：两个大数字横向排列，中间放乘号。 */
+    private VBox chipsMultPanel() {
+        Label t = new Label("当前积分 × 倍数");
+        t.setStyle(TEXT_MID);
+        Label x = new Label("×");
+        x.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #e88;");
+        HBox row = new HBox(10, previewChipsLabel, x, previewMultLabel);
+        row.setAlignment(Pos.CENTER);
+        VBox inner = new VBox(4, t, row);
+        inner.setAlignment(Pos.CENTER_LEFT);
+        inner.setPadding(new Insets(10, 14, 10, 14));
+        inner.setStyle(PANEL_INNER);
+        VBox wrapper = new VBox(inner);
+        wrapper.setPadding(new Insets(4));
+        wrapper.setStyle(PANEL);
+        return wrapper;
+    }
+
+    /** 中央区域：上方功能牌栏，中间计分过程区（吃掉多余空间），下方手牌区与操作按钮。 */
     private VBox buildCenter() {
         Label specialTitle = new Label("功能牌");
         specialTitle.setStyle(TEXT_MID);
@@ -108,7 +129,7 @@ public class GameViewFx implements GameView {
         specialBox.setAlignment(Pos.TOP_CENTER);
         specialBox.setPadding(new Insets(12));
 
-        VBox previewBox = buildPreviewBox();
+        VBox processBox = buildProcessBox();
 
         handArea.setAlignment(Pos.BOTTOM_CENTER);
         handArea.setPadding(new Insets(10));
@@ -121,17 +142,22 @@ public class GameViewFx implements GameView {
         HBox actions = new HBox(14, playButton, discardButton, deckButton, scoreEffectLabel);
         actions.setAlignment(Pos.CENTER);
         actions.setPadding(new Insets(12));
+        actions.setMinHeight(70); // 底部操作区保底高度
 
-        VBox center = new VBox(specialBox, previewBox, handArea, actions);
-        VBox.setVgrow(previewBox, Priority.ALWAYS); // 多余空间留给中间预览区
+        VBox center = new VBox(specialBox, processBox, handArea, actions);
+        VBox.setVgrow(processBox, Priority.ALWAYS); // 中间计分过程区吃掉多余空间
         return center;
     }
 
-    /** 中间计分预览区：显示选中牌型与预计得分。 */
-    private VBox buildPreviewBox() {
+    /**
+     * 中间计分过程区：平时显示选中牌型名；出牌时从左到右逐张摆牌，
+     * 左侧当前积分与当前倍数随计算一步步增长。
+     */
+    private VBox buildProcessBox() {
         previewTypeLabel.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: white;");
-        previewScoreLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #ffb300;");
-        VBox box = new VBox(8, previewTypeLabel, previewScoreLabel);
+        processArea.setAlignment(Pos.CENTER);
+        processArea.setMinHeight(140); // 计分过程区保底高度
+        VBox box = new VBox(10, previewTypeLabel, processArea);
         box.setAlignment(Pos.CENTER);
         return box;
     }
@@ -201,21 +227,40 @@ public class GameViewFx implements GameView {
     }
 
     /**
-     * 刷新计分预览：中间区域显示选中牌型与预计得分，左侧显示积分与倍数。
-     * selection 为空或不合法时传 null 清空显示。
+     * 刷新计分预览：中间区域显示选中牌型名，左侧显示当前积分与当前倍数。
+     * 不显示预估总分；选中为空或不合法时传 null 清空显示。
      */
-    public void renderPreview(String handTypeName, Integer chips, Integer mult, Integer score) {
+    public void renderPreview(String handTypeName, Integer chips, Integer mult) {
         if (handTypeName == null) {
             previewTypeLabel.setText("未选牌");
-            previewScoreLabel.setText("");
             previewChipsLabel.setText("0");
             previewMultLabel.setText("0");
             return;
         }
         previewTypeLabel.setText(handTypeName);
-        previewScoreLabel.setText("预计得分 " + score);
         previewChipsLabel.setText(String.valueOf(chips));
         previewMultLabel.setText(String.valueOf(mult));
+    }
+
+    /**
+     * 播放计分过程：在中间区域从左到右逐张摆出计分手牌，
+     * 左侧当前积分与当前倍数随每一步增长；全部播完后执行 onFinished。
+     */
+    public void playScoringProcess(java.util.List<com.bilitro.model.hand.ScoreCalculator.ScoreStep> steps,
+                                   Runnable onFinished) {
+        processArea.getChildren().clear();
+        javafx.animation.Timeline timeline = new javafx.animation.Timeline();
+        for (int i = 0; i < steps.size(); i++) {
+            var step = steps.get(i);
+            timeline.getKeyFrames().add(new javafx.animation.KeyFrame(
+                    javafx.util.Duration.millis(400.0 * (i + 1)), e -> {
+                processArea.getChildren().add(new CardNode(step.card()));
+                previewChipsLabel.setText(String.valueOf(step.chipsAfter()));
+                previewMultLabel.setText(String.valueOf(step.multAfter()));
+            }));
+        }
+        timeline.setOnFinished(e -> onFinished.run());
+        timeline.play();
     }
 
     /** 刷新状态区各数值。 */

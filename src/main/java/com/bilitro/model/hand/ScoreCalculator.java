@@ -19,6 +19,21 @@ public interface ScoreCalculator {
     ScoreBreakdown score(Evaluation eval, List<SpecialCard> specials);
 
     /**
+     * 分步计分：每处理一张计分手牌（含该轮功能牌触发）后记录一个快照，
+     * 供界面从左到右逐张播放计分过程，当前积分与倍数随步骤增长。
+     */
+    List<ScoreStep> steps(Evaluation eval, List<SpecialCard> specials);
+
+    /**
+     * 计分步骤快照。
+     * @param card       本步处理的手牌
+     * @param chipsAfter 本步后的当前积分
+     * @param multAfter  本步后的当前倍数
+     */
+    record ScoreStep(com.bilitro.model.card.Card card, int chipsAfter, int multAfter) {
+    }
+
+    /**
      * 计分明细。
      * @param baseChips   牌型基础分
      * @param cardChips   手牌点数累计

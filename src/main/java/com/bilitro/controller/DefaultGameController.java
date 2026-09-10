@@ -61,17 +61,23 @@ public class DefaultGameController implements GameController {
         return List.copyOf(selected);
     }
 
-    /** 出牌：计分、刷新界面、检查结局。 */
+    /** 出牌：先在中间区域逐张播放计分过程，播完再落账并检查结局。 */
     @Override
     public void onPlay() {
-        if (!evaluator.isPlayable(selected)) {
+        var eval = evaluator.evaluateDetail(selected);
+        if (eval.isEmpty()) {
             return;
         }
-        var result = session.play(selected);
+        var steps = calculator.steps(eval.get(), session.player().specialCards());
+        List<Card> played = List.copyOf(selected);
         selected.clear();
-        view.playScoreEffect(result.score());
-        refresh();
-        checkOutcome();
+        view.setActionEnabled(false, false); // 动画期间锁定操作
+        view.playScoringProcess(steps, () -> {
+            var result = session.play(played);
+            view.playScoreEffect(result.score());
+            refresh();
+            checkOutcome();
+        });
     }
 
     /** 弃牌：次数为 0 时无响应。 */
@@ -114,16 +120,16 @@ public class DefaultGameController implements GameController {
                 !selected.isEmpty() && session.remainingDiscards() > 0);
     }
 
-    /** 刷新计分预览：选中牌可出时试算牌型与得分（含功能牌），否则清空预览。 */
+    /** 刷新计分预览：选中牌可出时试算牌型、积分与倍数（不显示预估总分），否则清空预览。 */
     private void refreshPreview() {
         var eval = evaluator.evaluateDetail(selected);
         if (eval.isEmpty()) {
-            view.renderPreview(null, null, null, null);
+            view.renderPreview(null, null, null);
             return;
         }
         var b = calculator.score(eval.get(), session.player().specialCards());
         int chips = b.baseChips() + b.cardChips() + b.bonusChips();
-        view.renderPreview(eval.get().type().displayName(), chips, b.finalMult(), b.finalScore());
+        view.renderPreview(eval.get().type().displayName(), chips, b.finalMult());
     }
 
     /** 检查对局结局：过关则发奖励并进入下一关，终局则交给回调。 */
