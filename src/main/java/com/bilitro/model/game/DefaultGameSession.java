@@ -7,6 +7,7 @@ import com.bilitro.model.hand.Evaluation;
 import com.bilitro.model.hand.HandTypeEvaluator;
 import com.bilitro.model.hand.ScoreCalculator;
 import com.bilitro.model.player.Player;
+import com.bilitro.model.player.SpecialCard;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -105,6 +106,10 @@ public class DefaultGameSession implements GameSession {
         remainingPlays--;
         remainingTargetScore -= breakdown.finalScore();
         totalScore += breakdown.finalScore();
+        // 成长类功能牌：本次出牌计分完成后积累永久加成
+        for (SpecialCard special : player.specialCards()) {
+            special.onHandPlayed(eval.type());
+        }
         replaceCards(selected);
         return new PlayResult(eval.type(), breakdown.finalScore());
     }

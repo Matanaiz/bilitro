@@ -33,6 +33,12 @@ public class ConfiguredSpecialCard implements SpecialCard {
         META_FACE        // 元规则：所有手牌均视为人头牌（如"幻视"）
     }
 
+    /** 成长时机（积累类功能牌）。 */
+    public enum GrowthType {
+        NONE,      // 不成长
+        PER_HAND   // 每打出一次牌积累一次 growthValue
+    }
+
     private final String id;
     private final String name;
     private final String description;
@@ -42,11 +48,24 @@ public class ConfiguredSpecialCard implements SpecialCard {
     private final double effectValue;
     private final ConditionType conditionType;
     private final String conditionValue;
+    private final GrowthType growthType;
+    private final double growthValue;
+    /** 已积累的成长次数（游玩中增长，效果数值随其增大）。 */
+    private int growthStacks;
 
-    /** 按配置表字段创建功能牌。 */
+    /** 按配置表字段创建功能牌（无成长）。 */
     public ConfiguredSpecialCard(String id, String name, String description, int price,
                                  String image, EffectType effectType, double effectValue,
                                  ConditionType conditionType, String conditionValue) {
+        this(id, name, description, price, image, effectType, effectValue,
+                conditionType, conditionValue, GrowthType.NONE, 0);
+    }
+
+    /** 按配置表字段创建功能牌（含成长字段）。 */
+    public ConfiguredSpecialCard(String id, String name, String description, int price,
+                                 String image, EffectType effectType, double effectValue,
+                                 ConditionType conditionType, String conditionValue,
+                                 GrowthType growthType, double growthValue) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -56,6 +75,8 @@ public class ConfiguredSpecialCard implements SpecialCard {
         this.effectValue = effectValue;
         this.conditionType = conditionType == null ? ConditionType.ALWAYS : conditionType;
         this.conditionValue = conditionValue;
+        this.growthType = growthType == null ? GrowthType.NONE : growthType;
+        this.growthValue = growthValue;
     }
 
     /** 返回配置表中的唯一 id。 */
@@ -69,9 +90,12 @@ public class ConfiguredSpecialCard implements SpecialCard {
         return name;
     }
 
-    /** 返回效果描述文本（查看浮层用）。 */
+    /** 返回效果描述文本（查看浮层用）；成长类牌会附上当前已积累的加成。 */
     @Override
     public String description() {
+        if (growthType != GrowthType.NONE && growthStacks > 0) {
+            return description + "（已积累 +" + (int) (growthStacks * growthValue) + "）";
+        }
         return description;
     }
 
@@ -97,11 +121,29 @@ public class ConfiguredSpecialCard implements SpecialCard {
             return;
         }
         switch (effectType) {
-            case ADD_CHIPS -> ctx.addChips((int) effectValue);
-            case ADD_MULT -> ctx.addMult((int) effectValue);
-            case MULTIPLY_MULT -> ctx.multiplyMult(effectValue);
-            case ADD_MULT_PER_SPECIAL -> ctx.addMult((int) effectValue * ctx.specialCount());
+            case ADD_CHIPS -> ctx.addChips((int) effectiveValue());
+            case ADD_MULT -> ctx.addMult((int) effectiveValue());
+            case MULTIPLY_MULT -> ctx.multiplyMult(effectiveValue());
+            case ADD_MULT_PER_SPECIAL -> ctx.addMult((int) effectiveValue() * ctx.specialCount());
         }
+    }
+
+    /** 一次出牌计分完成后积累成长：PER_HAND 表示每打出一次牌积累一次。 */
+    @Override
+    public void onHandPlayed(HandType handType) {
+        if (growthType == GrowthType.PER_HAND) {
+            growthStacks++;
+        }
+    }
+
+    /** 返回当前已积累的成长次数（存档与测试用）。 */
+    public int growthStacks() {
+        return growthStacks;
+    }
+
+    /** 效果数值 = 基础值 + 已积累次数 × 每次积累量。 */
+    private double effectiveValue() {
+        return effectValue + growthStacks * growthValue;
     }
 
     /** 触发时机：花色/人头/点数条件逐张触发；无条件与牌型条件整手结算时触发一次。 */

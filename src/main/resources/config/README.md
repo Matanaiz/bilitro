@@ -13,6 +13,8 @@
 | effectValue | 效果数值 |
 | conditionType | 触发条件 |
 | conditionValue | 条件参数 |
+| growthType | 成长时机（可省略）：NONE 不成长 / PER_HAND 每打出一次牌积累一次 |
+| growthValue | 每次积累量（可省略）；效果数值 = effectValue + 已积累次数 × growthValue |
 
 effectType 取值：
 
@@ -37,3 +39,21 @@ conditionType 取值：
 | META_FACE | 持有期间所有手牌均视为人头牌 | 无 |
 
 说明：重触发类（RETRIGGER_*）与元规则类（META_FACE）不通过 effectType 修改分数，effectType/effectValue 字段中 effectValue 对重触发表示额外计分次数。
+
+成长类示例（每打出一次永久 +50 积分）：
+
+```json
+{
+  "id": "growing_chips",
+  "name": "积累筹码",
+  "description": "计分时给予本牌已积累的积分",
+  "price": 5,
+  "image": "",
+  "effectType": "ADD_CHIPS",
+  "effectValue": 0,
+  "conditionType": "ALWAYS",
+  "conditionValue": null,
+  "growthType": "PER_HAND",
+  "growthValue": 50
+}
+```

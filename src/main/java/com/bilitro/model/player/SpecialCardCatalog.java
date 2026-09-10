@@ -33,6 +33,10 @@ public class SpecialCardCatalog {
         ConfiguredSpecialCard.ConditionType conditionType;
         @SerializedName("conditionValue")
         String conditionValue;
+        @SerializedName("growthType")
+        ConfiguredSpecialCard.GrowthType growthType;
+        @SerializedName("growthValue")
+        double growthValue;
     }
 
     /** 加载全部功能牌；配置表为空时返回空列表。 */
@@ -50,7 +54,8 @@ public class SpecialCardCatalog {
                         .<SpecialCard>map(e -> new ConfiguredSpecialCard(
                                 e.id, e.name, e.description, e.price,
                                 e.image, e.effectType, e.effectValue,
-                                e.conditionType, e.conditionValue))
+                                e.conditionType, e.conditionValue,
+                                e.growthType, e.growthValue))
                         .toList();
             }
         } catch (IOException e) {

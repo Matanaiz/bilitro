@@ -52,6 +52,16 @@ public interface SpecialCard {
         return false;
     }
 
+    /**
+     * 一次出牌计分完成后由对局调用：成长类功能牌在此积累永久加成
+     * （如"每打出一次，本牌效果永久 +50 积分"）。
+     * 默认无成长；由具体实现覆写。
+     *
+     * @param handType 本次出牌的牌型
+     */
+    default void onHandPlayed(com.bilitro.model.hand.HandType handType) {
+    }
+
     // TODO(答复 1/3): 手牌数量、出牌/弃牌次数的修改类效果，建议在配置表中加
     //  passive 修饰字段（如 handSizeDelta / playsDelta），由 GameSession 开局时汇总生效。
 }

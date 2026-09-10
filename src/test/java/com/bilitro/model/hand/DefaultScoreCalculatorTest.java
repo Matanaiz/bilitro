@@ -227,4 +227,26 @@ class DefaultScoreCalculatorTest {
         assertEquals(20, result.cardChips());
         assertEquals(60, result.finalScore());
     }
+
+    @Test
+    void 成长类功能牌每打出一次永久积累() {
+        // 成长牌：每打出一次永久 +50 积分（基础值 0）
+        var growing = new ConfiguredSpecialCard("growing", "growing", "growing", 1, "",
+                ConfiguredSpecialCard.EffectType.ADD_CHIPS, 0,
+                ConfiguredSpecialCard.ConditionType.ALWAYS, null,
+                ConfiguredSpecialCard.GrowthType.PER_HAND, 50);
+        // 未出牌时无加成
+        var first = calculator.score(
+                eval(HandType.PAIR, c(Rank.TEN), c(Rank.TEN)), List.of(growing));
+        assertEquals(0, first.bonusChips());
+        // 模拟两次出牌后：积累 2 × 50 = 100
+        growing.onHandPlayed(HandType.PAIR);
+        growing.onHandPlayed(HandType.PAIR);
+        var third = calculator.score(
+                eval(HandType.PAIR, c(Rank.TEN), c(Rank.TEN)), List.of(growing));
+        assertEquals(100, third.bonusChips());
+        // (10 + 20 + 100) × 2 = 260
+        assertEquals(260, third.finalScore());
+        assertEquals(2, growing.growthStacks());
+    }
 }
