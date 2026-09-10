@@ -48,12 +48,26 @@ public class DefaultScoreCalculator implements ScoreCalculator {
         for (var card : eval.scoringCards()) {
             ctx.addChips(card.rank().chips());
             ctx.setCurrentCard(card, first);
-            // 每处理一张手牌，依次触发一轮全部功能牌
+            // 每处理一张手牌，触发一轮逐张类功能牌（如花色条件）
             for (SpecialCard special : specials) {
-                special.onScore(ctx);
+                if (special.triggerPerCard()) {
+                    special.onScore(ctx);
+                }
             }
             steps.add(new ScoreStep(card, ctx.chips(), ctx.mult()));
             first = false;
+        }
+        // 整手类功能牌（无条件、牌型条件）在结算末尾触发一次
+        boolean hasPerHand = specials.stream().anyMatch(s -> !s.triggerPerCard());
+        if (hasPerHand) {
+            ctx.setCurrentCard(null, false);
+            for (SpecialCard special : specials) {
+                if (!special.triggerPerCard()) {
+                    special.onScore(ctx);
+                }
+            }
+            // 追加一个无牌的结算快照，供界面显示最终积分与倍数
+            steps.add(new ScoreStep(null, ctx.chips(), ctx.mult()));
         }
         return steps;
     }

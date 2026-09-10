@@ -259,7 +259,9 @@ public class GameViewFx implements GameView {
             var step = steps.get(i);
             timeline.getKeyFrames().add(new javafx.animation.KeyFrame(
                     javafx.util.Duration.millis(400.0 * (i + 1)), e -> {
-                processArea.getChildren().add(new CardNode(step.card()));
+                if (step.card() != null) {
+                    processArea.getChildren().add(new CardNode(step.card()));
+                }
                 previewChipsLabel.setText(String.valueOf(step.chipsAfter()));
                 previewMultLabel.setText(String.valueOf(step.multAfter()));
             }));

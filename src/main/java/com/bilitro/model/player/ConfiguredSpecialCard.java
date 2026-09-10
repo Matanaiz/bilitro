@@ -91,13 +91,19 @@ public class ConfiguredSpecialCard implements SpecialCard {
         }
     }
 
+    /** 触发时机：花色条件逐张触发；无条件与牌型条件整手结算时触发一次。 */
+    @Override
+    public boolean triggerPerCard() {
+        return conditionType == ConditionType.SCORING_SUIT;
+    }
+
     /** 判断当前计分步骤是否满足触发条件。 */
     private boolean conditionMet(ScoringContext ctx) {
         return switch (conditionType) {
             case ALWAYS -> true;
             case SCORING_SUIT -> ctx.currentCard() != null
                     && ctx.currentCard().suit() == Suit.valueOf(conditionValue);
-            case HAND_TYPE -> ctx.isFirstCard() && handTypeContains(ctx.handType());
+            case HAND_TYPE -> handTypeContains(ctx.handType());
         };
     }
 

@@ -25,6 +25,14 @@ public interface SpecialCard {
     default void onScore(ScoringContext ctx) {
     }
 
+    /**
+     * 触发时机：true 表示逐张手牌触发（如"每张红桃牌计分时"类效果）；
+     * false 表示整手结算时只触发一次（如无条件的"小丑 +4 倍率"）。
+     */
+    default boolean triggerPerCard() {
+        return true;
+    }
+
     // TODO(答复 1/3): 手牌数量、出牌/弃牌次数的修改类效果，建议在配置表中加
     //  passive 修饰字段（如 handSizeDelta / playsDelta），由 GameSession 开局时汇总生效。
 }

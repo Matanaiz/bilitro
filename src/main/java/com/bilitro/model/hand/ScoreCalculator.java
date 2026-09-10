@@ -26,7 +26,7 @@ public interface ScoreCalculator {
 
     /**
      * 计分步骤快照。
-     * @param card       本步处理的手牌
+     * @param card       本步处理的手牌；为 null 表示整手功能牌结算快照（末步）
      * @param chipsAfter 本步后的当前积分
      * @param multAfter  本步后的当前倍数
      */

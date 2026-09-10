@@ -40,15 +40,15 @@ class DefaultScoreCalculatorTest {
     }
 
     @Test
-    void 小丑每张牌都加4倍率() {
-        // 对子 10×2，牌面 10+10；小丑每张 +4 倍率：2 张 → 2+8=10
+    void 小丑结算时只加一次倍率() {
+        // 对子 10×2，牌面 10+10；小丑无条件 +4 倍率整手一次：2+4=6
         var result = calculator.score(
                 eval(HandType.PAIR, c(Rank.TEN), c(Rank.TEN)),
                 List.of(joker("joker", ConfiguredSpecialCard.EffectType.ADD_MULT, 4,
                         ConfiguredSpecialCard.ConditionType.ALWAYS, null)));
-        assertEquals(10, result.finalMult());
-        // (10 + 20) × 10 = 300
-        assertEquals(300, result.finalScore());
+        assertEquals(6, result.finalMult());
+        // (10 + 20) × 6 = 180
+        assertEquals(180, result.finalScore());
     }
 
     @Test
@@ -104,14 +104,14 @@ class DefaultScoreCalculatorTest {
     }
 
     @Test
-    void 功能牌每张手牌触发一轮() {
-        // 对子计 2 张牌，+30 分功能牌触发 2 轮：加成 60
+    void 无条件功能牌结算时只触发一次() {
+        // 对子计 2 张牌，无条件 +30 分功能牌整手只触发一次：加成 30
         var result = calculator.score(
                 eval(HandType.PAIR, c(Rank.TEN), c(Rank.TEN)),
                 List.of(addChips(30)));
-        assertEquals(60, result.bonusChips());
-        // (10 + 20 + 60) × 2 = 180
-        assertEquals(180, result.finalScore());
+        assertEquals(30, result.bonusChips());
+        // (10 + 20 + 30) × 2 = 120
+        assertEquals(120, result.finalScore());
     }
 
     @Test
