@@ -41,16 +41,19 @@ public class DefaultScoreCalculator implements ScoreCalculator {
     @Override
     public List<ScoreStep> steps(Evaluation eval, List<SpecialCard> specials) {
         HandType type = eval.type();
-        ScoringContext ctx = new ScoringContext(type.baseScore(), type.baseMultiplier());
+        ScoringContext ctx = new ScoringContext(type.baseScore(), type.baseMultiplier(), type);
 
         List<ScoreStep> steps = new ArrayList<>();
+        boolean first = true;
         for (var card : eval.scoringCards()) {
             ctx.addChips(card.rank().chips());
+            ctx.setCurrentCard(card, first);
             // 每处理一张手牌，依次触发一轮全部功能牌
             for (SpecialCard special : specials) {
                 special.onScore(ctx);
             }
             steps.add(new ScoreStep(card, ctx.chips(), ctx.mult()));
+            first = false;
         }
         return steps;
     }

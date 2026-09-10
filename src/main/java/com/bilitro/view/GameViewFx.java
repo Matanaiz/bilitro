@@ -90,7 +90,7 @@ public class GameViewFx implements GameView {
     private VBox buildSidebar() {
         VBox box = new VBox(10,
                 panel("目标得分", targetLabel),
-                panel("本局总分", totalLabel),
+                panel("本关总分", totalLabel),
                 chipsMultPanel(),
                 panel("出牌次数", playsLabel),
                 panel("弃牌次数", discardsLabel),

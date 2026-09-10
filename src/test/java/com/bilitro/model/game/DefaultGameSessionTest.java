@@ -40,7 +40,7 @@ class DefaultGameSessionTest {
         s.play(s.hand().subList(0, 1));
         assertEquals(before - 1, s.remainingPlays());
         assertEquals(GameConfig.HAND_SIZE, s.hand().size());
-        assertTrue(s.totalScore() > 0);
+        assertTrue(s.levelScore() > 0);
     }
 
     @Test

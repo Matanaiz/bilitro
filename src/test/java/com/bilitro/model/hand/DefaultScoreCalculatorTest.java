@@ -28,7 +28,8 @@ class DefaultScoreCalculatorTest {
     /** 构造一张加分类功能牌。 */
     private static SpecialCard addChips(int value) {
         return new ConfiguredSpecialCard("t", "t", "t", 1, "",
-                ConfiguredSpecialCard.EffectType.ADD_CHIPS, value);
+                ConfiguredSpecialCard.EffectType.ADD_CHIPS, value,
+                ConfiguredSpecialCard.ConditionType.ALWAYS, null);
     }
 
     @Test

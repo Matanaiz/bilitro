@@ -29,6 +29,10 @@ public class SpecialCardCatalog {
         ConfiguredSpecialCard.EffectType effectType;
         @SerializedName("effectValue")
         double effectValue;
+        @SerializedName("conditionType")
+        ConfiguredSpecialCard.ConditionType conditionType;
+        @SerializedName("conditionValue")
+        String conditionValue;
     }
 
     /** 加载全部功能牌；配置表为空时返回空列表。 */
@@ -45,7 +49,8 @@ public class SpecialCardCatalog {
                 return java.util.Arrays.stream(entries)
                         .<SpecialCard>map(e -> new ConfiguredSpecialCard(
                                 e.id, e.name, e.description, e.price,
-                                e.image, e.effectType, e.effectValue))
+                                e.image, e.effectType, e.effectValue,
+                                e.conditionType, e.conditionValue))
                         .toList();
             }
         } catch (IOException e) {

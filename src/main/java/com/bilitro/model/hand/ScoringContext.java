@@ -1,5 +1,7 @@
 package com.bilitro.model.hand;
 
+import com.bilitro.model.card.Card;
+
 /**
  * 计分上下文：在一次出牌计分过程中可被功能牌读写的中间状态。
  *
@@ -17,9 +19,42 @@ public final class ScoringContext {
     private int mult;    // 最终倍数
     private double multMultiplier = 1.0; // 倍数的乘算修正（如"倍数 ×2"类功能牌）
 
+    /** 本次出牌的牌型（功能牌条件判断用）。 */
+    private final HandType handType;
+    /** 当前正在计分的手牌（花色条件功能牌用）。 */
+    private Card currentCard;
+    /** 是否正在处理第一张计分手牌（整手一次的效果只在这一步触发）。 */
+    private boolean firstCard;
+
     public ScoringContext(int baseChips, int baseMult) {
+        this(baseChips, baseMult, null);
+    }
+
+    public ScoringContext(int baseChips, int baseMult, HandType handType) {
         this.chips = baseChips;
         this.mult = baseMult;
+        this.handType = handType;
+    }
+
+    /** 由计分器在逐张计分时设置当前手牌与是否首张。 */
+    public void setCurrentCard(Card card, boolean first) {
+        this.currentCard = card;
+        this.firstCard = first;
+    }
+
+    /** 返回本次出牌的牌型。 */
+    public HandType handType() {
+        return handType;
+    }
+
+    /** 返回当前正在计分的手牌。 */
+    public Card currentCard() {
+        return currentCard;
+    }
+
+    /** 返回当前是否第一张计分手牌。 */
+    public boolean isFirstCard() {
+        return firstCard;
     }
 
     public int chips() {

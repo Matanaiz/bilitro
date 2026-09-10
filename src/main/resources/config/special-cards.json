@@ -1,1 +1,68 @@
-[]
+[
+  {
+    "id": "joker",
+    "name": "小丑",
+    "description": "+4 倍率",
+    "price": 2,
+    "image": "",
+    "effectType": "ADD_MULT",
+    "effectValue": 4,
+    "conditionType": "ALWAYS",
+    "conditionValue": null
+  },
+  {
+    "id": "lusty_joker",
+    "name": "色欲小丑",
+    "description": "打出的红桃花色牌在计分时给予 +3 倍率",
+    "price": 5,
+    "image": "",
+    "effectType": "ADD_MULT",
+    "effectValue": 3,
+    "conditionType": "SCORING_SUIT",
+    "conditionValue": "HEART"
+  },
+  {
+    "id": "gluttonous_joker",
+    "name": "暴食小丑",
+    "description": "打出的梅花花色牌在计分时给予 +3 倍率",
+    "price": 5,
+    "image": "",
+    "effectType": "ADD_MULT",
+    "effectValue": 3,
+    "conditionType": "SCORING_SUIT",
+    "conditionValue": "CLUB"
+  },
+  {
+    "id": "wily_joker",
+    "name": "古怪小丑",
+    "description": "如果打出的牌包含三条，给予 +12 倍率",
+    "price": 4,
+    "image": "",
+    "effectType": "ADD_MULT",
+    "effectValue": 12,
+    "conditionType": "HAND_TYPE",
+    "conditionValue": "THREE_OF_A_KIND"
+  },
+  {
+    "id": "crazy_joker",
+    "name": "狂野小丑",
+    "description": "如果打出的牌包含顺子，给予 +12 倍率",
+    "price": 4,
+    "image": "",
+    "effectType": "ADD_MULT",
+    "effectValue": 12,
+    "conditionType": "HAND_TYPE",
+    "conditionValue": "STRAIGHT"
+  },
+  {
+    "id": "sly_joker",
+    "name": "奸诈小丑",
+    "description": "如果打出的牌包含对子，给予 +50 积分",
+    "price": 3,
+    "image": "",
+    "effectType": "ADD_CHIPS",
+    "effectValue": 50,
+    "conditionType": "HAND_TYPE",
+    "conditionValue": "PAIR"
+  }
+]

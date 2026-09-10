@@ -66,9 +66,9 @@ public class DefaultGameSession implements GameSession {
         return remainingDiscards;
     }
 
-    /** 返回本局累计得分（结算与最高分记录用）。 */
+    /** 返回本关累计得分（每关开始清零）。 */
     @Override
-    public int totalScore() {
+    public int levelScore() {
         return totalScore;
     }
 
@@ -145,10 +145,11 @@ public class DefaultGameSession implements GameSession {
         startLevel(rule);
     }
 
-    /** 加载关卡规则：重置目标分、次数、牌组与手牌。 */
+    /** 加载关卡规则：重置目标分、本关得分、次数、牌组与手牌。 */
     private void startLevel(LevelRule rule) {
         this.rule = rule;
         this.remainingTargetScore = rule.targetScore();
+        this.totalScore = 0; // 本关总分清零
         this.remainingPlays = GameConfig.PLAYS_PER_LEVEL;
         this.remainingDiscards = GameConfig.DISCARDS_PER_LEVEL;
         deck.reset(rule.bannedSuits());

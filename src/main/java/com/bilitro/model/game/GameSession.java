@@ -31,8 +31,8 @@ public interface GameSession {
     /** 弃牌重抽：次数-1、补牌；次数为 0 时不允许调用。 */
     void discard(List<Card> selected);
 
-    /** 本局累计得分（结算与最高分记录用，见结束判定流程图"记录分数"）。 */
-    int totalScore();
+    /** 本关累计得分（每关开始清零；最高分只记录最后一关的通关得分）。 */
+    int levelScore();
 
     /**
      * 结束判定（见结束判定流程图）：

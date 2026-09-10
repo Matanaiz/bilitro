@@ -3,7 +3,6 @@ package com.bilitro.controller;
 import com.bilitro.model.GameConfig;
 import com.bilitro.model.card.Card;
 import com.bilitro.model.game.GameSession;
-import com.bilitro.model.game.LevelRule;
 import com.bilitro.model.hand.HandTypeEvaluator;
 import com.bilitro.model.hand.ScoreCalculator;
 import com.bilitro.model.player.SpecialCard;
@@ -11,7 +10,6 @@ import com.bilitro.view.GameViewFx;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -110,7 +108,7 @@ public class DefaultGameController implements GameController {
         view.renderHand(session.hand(), selected);
         view.renderStatus(session.remainingTargetScore(), session.remainingPlays(),
                 session.remainingDiscards(), session.player().coins());
-        view.renderProgress(session.currentLevel(), session.totalScore());
+        view.renderProgress(session.currentLevel(), session.levelScore());
         view.renderDeckCount(session.remainingDeck().size());
         view.renderSpecialCards(session.player().specialCards());
         refreshPreview();
@@ -132,30 +130,21 @@ public class DefaultGameController implements GameController {
                 eval.get().type().baseScore(), eval.get().type().baseMultiplier());
     }
 
-    /** 检查对局结局：过关则发奖励并进入下一关，终局则交给回调。 */
+    /** 检查对局结局：过关发奖励并交给回调（进商店），终局交给回调（结算）。 */
     private void checkOutcome() {
         var outcome = session.outcome();
         switch (outcome) {
             case LEVEL_CLEARED -> {
                 int reward = session.claimLevelClearReward();
                 view.showMessage("过关！获得奖励 " + reward + " 代币");
-                session.advanceLevel(nextRule(session.currentLevel() + 1));
-                view.clearProcess(); // 过关后清空中间计分过程区
-                refresh();
+                view.clearProcess();
+                outcomeHandler.accept(outcome);
             }
             case VICTORY, FAILED -> {
-                view.clearProcess(); // 终局清空中间计分过程区
+                view.clearProcess();
                 outcomeHandler.accept(outcome);
             }
             default -> { }
         }
-    }
-
-    /**
-     * 生成下一关规则（P0 简化版：目标分随关卡线性增长，无禁用花色）。
-     * TODO: 关卡规则表定稿后改为查表（答复 10：目标分数待定）。
-     */
-    private LevelRule nextRule(int level) {
-        return new LevelRule(150 * level, Set.of(), "第 " + level + " 关");
     }
 }
