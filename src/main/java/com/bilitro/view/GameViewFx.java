@@ -242,6 +242,11 @@ public class GameViewFx implements GameView {
         previewMultLabel.setText(String.valueOf(mult));
     }
 
+    /** 清空中间计分过程区（通关/刷新时调用）。 */
+    public void clearProcess() {
+        processArea.getChildren().clear();
+    }
+
     /**
      * 播放计分过程：在中间区域从左到右逐张摆出计分手牌，
      * 左侧当前积分与当前倍数随每一步增长；全部播完后执行 onFinished。

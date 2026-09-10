@@ -46,12 +46,10 @@ public class DefaultGameController implements GameController {
     /** 切换某张手牌的选中状态，并按规则刷新按钮亮灰。 */
     @Override
     public void toggleSelect(Card card) {
-        if (!selected.remove(card)) {
-            if (selected.size() >= GameConfig.MAX_SELECT) {
-                return; // 超过选中上限，忽略本次点击
-            }
+        if (!selected.remove(card) && selected.size() < GameConfig.MAX_SELECT) {
             selected.add(card);
         }
+        // 超过选中上限时不加选，但仍刷新界面，把误高亮的卡牌控件还原
         refresh();
     }
 
@@ -142,9 +140,13 @@ public class DefaultGameController implements GameController {
                 int reward = session.claimLevelClearReward();
                 view.showMessage("过关！获得奖励 " + reward + " 代币");
                 session.advanceLevel(nextRule(session.currentLevel() + 1));
+                view.clearProcess(); // 过关后清空中间计分过程区
                 refresh();
             }
-            case VICTORY, FAILED -> outcomeHandler.accept(outcome);
+            case VICTORY, FAILED -> {
+                view.clearProcess(); // 终局清空中间计分过程区
+                outcomeHandler.accept(outcome);
+            }
             default -> { }
         }
     }
