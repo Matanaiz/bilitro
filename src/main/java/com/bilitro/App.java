@@ -2,6 +2,7 @@ package com.bilitro;
 
 import com.bilitro.controller.DefaultGameController;
 import com.bilitro.controller.DefaultShopController;
+import com.bilitro.model.GameConfig;
 import com.bilitro.model.card.StandardDeck;
 import com.bilitro.model.game.DefaultGameSession;
 import com.bilitro.model.game.GameSession;
