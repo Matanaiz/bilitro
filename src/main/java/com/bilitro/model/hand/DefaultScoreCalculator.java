@@ -23,7 +23,6 @@ public class DefaultScoreCalculator implements ScoreCalculator {
         ScoringContext ctx = new ScoringContext(type.baseScore(), type.baseMultiplier());
 
         int cardChips = 0;
-        int chipsBeforeSpecials = ctx.chips();
         for (var card : eval.scoringCards()) {
             int chips = card.rank().chips();
             cardChips += chips;
@@ -37,7 +36,7 @@ public class DefaultScoreCalculator implements ScoreCalculator {
         return new ScoreBreakdown(
                 type.baseScore(),
                 cardChips,
-                ctx.chips() - chipsBeforeSpecials,
+                ctx.chips() - type.baseScore() - cardChips,
                 type.baseMultiplier(),
                 ctx.mult(),
                 ctx.finalScore());
