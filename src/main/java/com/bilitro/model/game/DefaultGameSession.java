@@ -31,6 +31,7 @@ public class DefaultGameSession implements GameSession {
     private int totalScore;
     private final List<Card> hand = new ArrayList<>();
 
+    /** 创建对局并按第一关规则发牌开局。 */
     public DefaultGameSession(Deck deck, HandTypeEvaluator evaluator,
                               ScoreCalculator calculator, Player player,
                               LevelRule firstRule) {
@@ -41,41 +42,52 @@ public class DefaultGameSession implements GameSession {
         startLevel(firstRule);
     }
 
+    /** 返回当前关卡号（从 1 开始）。 */
     @Override
     public int currentLevel() {
         return level;
     }
 
+    /** 返回距离过关还差的分数。 */
     @Override
     public int remainingTargetScore() {
         return remainingTargetScore;
     }
 
+    /** 返回剩余出牌次数。 */
     @Override
     public int remainingPlays() {
         return remainingPlays;
     }
 
+    /** 返回剩余弃牌次数。 */
     @Override
     public int remainingDiscards() {
         return remainingDiscards;
     }
 
+    /** 返回本局累计得分（结算与最高分记录用）。 */
     @Override
     public int totalScore() {
         return totalScore;
     }
 
+    /** 返回当前手牌的只读快照。 */
     @Override
     public List<Card> hand() {
         return List.copyOf(hand);
     }
 
+    /** 返回本局玩家（货币与功能牌栏）。 */
     @Override
     public Player player() {
         return player;
     }
 
+    /**
+     * 打出选中的牌：判定牌型 → 计分（含功能牌）→ 扣减剩余目标分与出牌次数
+     * → 累加总分 → 移除已出牌并补牌，返回本次出牌结果供界面做特效。
+     */
     @Override
     public PlayResult play(List<Card> selected) {
         Evaluation eval = evaluator.evaluateDetail(selected)
@@ -91,6 +103,7 @@ public class DefaultGameSession implements GameSession {
         return new PlayResult(eval.type(), breakdown.finalScore());
     }
 
+    /** 弃掉选中的牌并补等量新牌；弃牌次数为 0 时抛异常。 */
     @Override
     public void discard(List<Card> selected) {
         if (remainingDiscards <= 0) {
@@ -100,6 +113,7 @@ public class DefaultGameSession implements GameSession {
         replaceCards(selected);
     }
 
+    /** 按结束判定流程图判断当前对局结局。 */
     @Override
     public RoundOutcome outcome() {
         if (remainingTargetScore <= 0) {
@@ -108,6 +122,7 @@ public class DefaultGameSession implements GameSession {
         return remainingPlays <= 0 ? RoundOutcome.FAILED : RoundOutcome.ONGOING;
     }
 
+    /** 结算并发放通关奖励：固定奖励 + 剩余出牌奖励 + 利息，返回入账总额。 */
     @Override
     public int claimLevelClearReward() {
         int reward = GameConfig.LEVEL_CLEAR_REWARD
@@ -117,6 +132,7 @@ public class DefaultGameSession implements GameSession {
         return reward;
     }
 
+    /** 进入下一关：关卡号加一并按新规则重置本关状态。 */
     @Override
     public void advanceLevel(LevelRule rule) {
         level++;
@@ -134,7 +150,7 @@ public class DefaultGameSession implements GameSession {
         hand.addAll(deck.draw(GameConfig.HAND_SIZE));
     }
 
-    /** 从手牌移除已打出的牌，并从牌组补等量牌。 */
+    /** 从手牌移除已使用的牌，并从牌组补等量牌。 */
     private void replaceCards(List<Card> used) {
         hand.removeAll(used);
         hand.addAll(deck.draw(used.size()));

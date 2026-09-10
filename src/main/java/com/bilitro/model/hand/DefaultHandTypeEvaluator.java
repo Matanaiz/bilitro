@@ -19,11 +19,13 @@ import java.util.Optional;
  */
 public class DefaultHandTypeEvaluator implements HandTypeEvaluator {
 
+    /** 判定这组牌构成的最高牌型；不满足出牌规则时返回 empty。 */
     @Override
     public Optional<HandType> evaluate(List<Card> selected) {
         return evaluateDetail(selected).map(Evaluation::type);
     }
 
+    /** 完整判定：从最高牌型开始逐级尝试，返回牌型与参与计分的手牌。 */
     @Override
     public Optional<Evaluation> evaluateDetail(List<Card> selected) {
         if (!isPlayable(selected)) {
@@ -31,10 +33,29 @@ public class DefaultHandTypeEvaluator implements HandTypeEvaluator {
         }
         List<Card> cards = new ArrayList<>(selected);
         Map<Rank, List<Card>> byRank = groupByRank(cards);
-        boolean flush = cards.size() == 5
-                && cards.stream().allMatch(c -> c.suit() == cards.get(0).suit());
-        boolean straight = cards.size() == 5 && isStraight(cards);
 
+        Optional<Evaluation> result = matchFiveCardTypes(cards, byRank);
+        if (result.isPresent()) {
+            return result;
+        }
+        return matchRankGroups(cards, byRank);
+    }
+
+    /** 校验选中张数是否在出牌规则范围内（1~5 张）。 */
+    @Override
+    public boolean isPlayable(List<Card> selected) {
+        return selected != null
+                && selected.size() >= GameConfig.MIN_SELECT
+                && selected.size() <= GameConfig.MAX_SELECT;
+    }
+
+    /**
+     * 匹配需要 5 张牌的牌型：同花顺、四条、葫芦、同花、顺子。
+     * 不足 5 张或不构成时返回 empty。
+     */
+    private Optional<Evaluation> matchFiveCardTypes(List<Card> cards, Map<Rank, List<Card>> byRank) {
+        boolean flush = isFlush(cards);
+        boolean straight = isStraight(cards);
         if (straight && flush) {
             return Optional.of(new Evaluation(HandType.STRAIGHT_FLUSH, cards));
         }
@@ -55,6 +76,15 @@ public class DefaultHandTypeEvaluator implements HandTypeEvaluator {
         if (straight) {
             return Optional.of(new Evaluation(HandType.STRAIGHT, cards));
         }
+        return Optional.empty();
+    }
+
+    /**
+     * 匹配只依赖点数重复的牌型：三条、两对、对子；
+     * 都不构成时按高牌处理（只计最大的一张）。
+     */
+    private Optional<Evaluation> matchRankGroups(List<Card> cards, Map<Rank, List<Card>> byRank) {
+        List<Card> trips = ofAKind(byRank, 3);
         if (trips != null) {
             return Optional.of(new Evaluation(HandType.THREE_OF_A_KIND, trips));
         }
@@ -62,20 +92,37 @@ public class DefaultHandTypeEvaluator implements HandTypeEvaluator {
         if (twoPair != null) {
             return Optional.of(new Evaluation(HandType.TWO_PAIR, twoPair));
         }
+        List<Card> pairs = ofAKind(byRank, 2);
         if (pairs != null) {
             return Optional.of(new Evaluation(HandType.PAIR, pairs));
         }
-        Card highest = cards.stream()
-                .max(Comparator.comparingInt(c -> c.rank().value()))
-                .orElseThrow();
-        return Optional.of(new Evaluation(HandType.HIGH_CARD, List.of(highest)));
+        return Optional.of(new Evaluation(HandType.HIGH_CARD, List.of(highestCard(cards))));
     }
 
-    @Override
-    public boolean isPlayable(List<Card> selected) {
-        return selected != null
-                && selected.size() >= GameConfig.MIN_SELECT
-                && selected.size() <= GameConfig.MAX_SELECT;
+    /** 判断是否为同花：5 张且花色全部相同。 */
+    private boolean isFlush(List<Card> cards) {
+        return cards.size() == 5
+                && cards.stream().allMatch(c -> c.suit() == cards.get(0).suit());
+    }
+
+    /** 判断是否为顺子：5 张点数连续（A 只算 14，不算 1）。 */
+    private boolean isStraight(List<Card> cards) {
+        if (cards.size() != 5) {
+            return false;
+        }
+        List<Integer> values = cards.stream()
+                .map(c -> c.rank().value())
+                .sorted()
+                .distinct()
+                .toList();
+        return values.size() == 5 && values.get(4) - values.get(0) == 4;
+    }
+
+    /** 返回点数最大的那张牌（高牌计分用）。 */
+    private Card highestCard(List<Card> cards) {
+        return cards.stream()
+                .max(Comparator.comparingInt(c -> c.rank().value()))
+                .orElseThrow();
     }
 
     /** 按点数分组，保持牌在原选中列表中的先后顺序（从左往右）。 */
@@ -107,18 +154,5 @@ public class DefaultHandTypeEvaluator implements HandTypeEvaluator {
         List<Card> result = new ArrayList<>(pairs.get(0));
         result.addAll(pairs.get(1));
         return result;
-    }
-
-    /** 是否 5 张连续（A 只算 14，不算 1）。 */
-    private boolean isStraight(List<Card> cards) {
-        List<Integer> values = cards.stream()
-                .map(c -> c.rank().value())
-                .sorted()
-                .distinct()
-                .toList();
-        if (values.size() != 5) {
-            return false;
-        }
-        return values.get(4) - values.get(0) == 4;
     }
 }

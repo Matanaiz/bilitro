@@ -34,6 +34,7 @@ public class ConfiguredSpecialCard implements SpecialCard {
         this.effectValue = effectValue;
     }
 
+    /** 返回配置表中的唯一 id。 */
     @Override
     public String id() {
         return id;
@@ -44,11 +45,13 @@ public class ConfiguredSpecialCard implements SpecialCard {
         return name;
     }
 
+    /** 返回效果描述文本（查看浮层用）。 */
     @Override
     public String description() {
         return description;
     }
 
+    /** 返回商店价格。 */
     @Override
     public int price() {
         return price;
@@ -59,6 +62,7 @@ public class ConfiguredSpecialCard implements SpecialCard {
         return image;
     }
 
+    /** 计分时触发：按配置的效果类型修改计分上下文中的分数或倍数。 */
     @Override
     public void onScore(ScoringContext ctx) {
         if (effectType == null) {

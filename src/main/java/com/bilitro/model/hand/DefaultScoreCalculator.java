@@ -13,6 +13,10 @@ import java.util.List;
  */
 public class DefaultScoreCalculator implements ScoreCalculator {
 
+    /**
+     * 计算一次出牌的得分：初始化基础分/倍数 → 逐张累加点数并触发一轮功能牌
+     * → 汇总为计分明细（最终得分 = 最终分数 × 最终倍数）。
+     */
     @Override
     public ScoreBreakdown score(Evaluation eval, List<SpecialCard> specials) {
         HandType type = eval.type();
