@@ -32,6 +32,57 @@ class DefaultScoreCalculatorTest {
                 ConfiguredSpecialCard.ConditionType.ALWAYS, null);
     }
 
+    /** 构造一张配置表小丑牌。 */
+    private static SpecialCard joker(String id, ConfiguredSpecialCard.EffectType effect,
+                                     double value, ConfiguredSpecialCard.ConditionType cond,
+                                     String condValue) {
+        return new ConfiguredSpecialCard(id, id, id, 1, "", effect, value, cond, condValue);
+    }
+
+    @Test
+    void 小丑每张牌都加4倍率() {
+        // 对子 10×2，牌面 10+10；小丑每张 +4 倍率：2 张 → 2+8=10
+        var result = calculator.score(
+                eval(HandType.PAIR, c(Rank.TEN), c(Rank.TEN)),
+                List.of(joker("joker", ConfiguredSpecialCard.EffectType.ADD_MULT, 4,
+                        ConfiguredSpecialCard.ConditionType.ALWAYS, null)));
+        assertEquals(10, result.finalMult());
+        // (10 + 20) × 10 = 300
+        assertEquals(300, result.finalScore());
+    }
+
+    @Test
+    void 色欲小丑只有红桃牌触发() {
+        // 对子：红桃10 + 黑桃10；色欲小丑只给红桃 +3：倍数 2+3=5
+        var result = calculator.score(
+                eval(HandType.PAIR,
+                        new Card(Suit.HEART, Rank.TEN), new Card(Suit.SPADE, Rank.TEN)),
+                List.of(joker("lusty_joker", ConfiguredSpecialCard.EffectType.ADD_MULT, 3,
+                        ConfiguredSpecialCard.ConditionType.SCORING_SUIT, "HEART")));
+        assertEquals(5, result.finalMult());
+    }
+
+    @Test
+    void 奸诈小丑整手只触发一次() {
+        // 对子 +50 积分，整手一次（不是每张 +50）
+        var result = calculator.score(
+                eval(HandType.PAIR, c(Rank.TEN), c(Rank.TEN)),
+                List.of(joker("sly_joker", ConfiguredSpecialCard.EffectType.ADD_CHIPS, 50,
+                        ConfiguredSpecialCard.ConditionType.HAND_TYPE, "PAIR")));
+        assertEquals(50, result.bonusChips());
+        // (10 + 20 + 50) × 2 = 160
+        assertEquals(160, result.finalScore());
+    }
+
+    @Test
+    void 奸诈小丑对不含对子的牌型不触发() {
+        var result = calculator.score(
+                eval(HandType.HIGH_CARD, c(Rank.ACE)),
+                List.of(joker("sly_joker", ConfiguredSpecialCard.EffectType.ADD_CHIPS, 50,
+                        ConfiguredSpecialCard.ConditionType.HAND_TYPE, "PAIR")));
+        assertEquals(0, result.bonusChips());
+    }
+
     @Test
     void 无功能牌时得分等于基础分加点数乘倍数() {
         // 对子 10×2，牌面 10 + 10：得分 = (10 + 20) × 2 = 60
