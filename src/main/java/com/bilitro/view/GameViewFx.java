@@ -11,6 +11,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 import java.util.List;
@@ -20,22 +22,31 @@ import java.util.stream.Collectors;
 
 /**
  * 对局界面的 JavaFX 实现（P0 纯色块文字版）。
- * 布局：顶部状态区，右侧功能牌栏，底部操作按钮，中央手牌区。
+ * 布局参考小丑牌：左侧深蓝信息栏（目标分/总分/次数/关卡/代币），
+ * 中央下方手牌区与操作按钮，上方功能牌栏，右侧牌组计数。
  */
 public class GameViewFx implements GameView {
+
+    /** 界面主色调。 */
+    private static final String BG = "-fx-background-color: #1f6f54;";       // 牌桌绿
+    private static final String PANEL = "-fx-background-color: #16324f; -fx-background-radius: 10;"; // 信息栏深蓝
+    private static final String PANEL_INNER = "-fx-background-color: #0d2033; -fx-background-radius: 8;";
+    private static final String TEXT_BIG = "-fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: white;";
+    private static final String TEXT_MID = "-fx-font-size: 15px; -fx-text-fill: #bcd;";
 
     private GameController controller;
 
     private final BorderPane root = new BorderPane();
-    private final HBox handArea = new HBox(8);
+    private final HBox handArea = new HBox(6);
     private final HBox specialArea = new HBox(8);
 
-    private final Label levelLabel = new Label();
-    private final Label targetLabel = new Label();
-    private final Label totalLabel = new Label();
-    private final Label playsLabel = new Label();
-    private final Label discardsLabel = new Label();
-    private final Label coinsLabel = new Label();
+    private final Label levelLabel = valueLabel();
+    private final Label targetLabel = valueLabel();
+    private final Label totalLabel = valueLabel();
+    private final Label playsLabel = valueLabel();
+    private final Label discardsLabel = valueLabel();
+    private final Label coinsLabel = valueLabel();
+    private final Label deckCountLabel = valueLabel();
     private final Label scoreEffectLabel = new Label();
 
     private final Button playButton = new Button("出牌");
@@ -60,24 +71,88 @@ public class GameViewFx implements GameView {
 
     /** 组装界面布局。 */
     private void buildLayout() {
-        HBox status = new HBox(20, levelLabel, targetLabel, totalLabel,
-                playsLabel, discardsLabel, coinsLabel);
-        status.setPadding(new Insets(10));
+        root.setStyle(BG);
+        root.setLeft(buildSidebar());
+        root.setCenter(buildCenter());
+        root.setRight(buildDeckCounter());
+    }
 
-        VBox right = new VBox(10, new Label("功能牌"), specialArea);
-        right.setPadding(new Insets(10));
+    /** 左侧信息栏：目标分、总分、出牌/弃牌次数、关卡、代币。 */
+    private VBox buildSidebar() {
+        VBox box = new VBox(10,
+                panel("目标得分", targetLabel),
+                panel("本局总分", totalLabel),
+                panel("出牌次数", playsLabel),
+                panel("弃牌次数", discardsLabel),
+                panel("关卡", levelLabel),
+                panel("代币", coinsLabel));
+        box.setPadding(new Insets(14));
+        box.setPrefWidth(190);
+        box.setStyle("-fx-background-color: #10243a;");
+        return box;
+    }
 
-        HBox actions = new HBox(12, playButton, discardButton, deckButton, scoreEffectLabel);
-        actions.setAlignment(Pos.CENTER);
-        actions.setPadding(new Insets(10));
+    /** 中央区域：上方功能牌栏，下方手牌区与操作按钮。 */
+    private VBox buildCenter() {
+        Label specialTitle = new Label("功能牌");
+        specialTitle.setStyle(TEXT_MID);
+        VBox specialBox = new VBox(6, specialTitle, specialArea);
+        specialBox.setAlignment(Pos.TOP_CENTER);
+        specialBox.setPadding(new Insets(12));
 
         handArea.setAlignment(Pos.BOTTOM_CENTER);
-        handArea.setPadding(new Insets(30, 10, 30, 10));
+        handArea.setPadding(new Insets(20, 10, 10, 10));
 
-        root.setTop(status);
-        root.setRight(right);
-        root.setBottom(actions);
-        root.setCenter(handArea);
+        scoreEffectLabel.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #ffb300;");
+        styleButton(playButton, "#2e7ddb");
+        styleButton(discardButton, "#d3355b");
+        styleButton(deckButton, "#555f6e");
+        HBox actions = new HBox(14, playButton, discardButton, deckButton, scoreEffectLabel);
+        actions.setAlignment(Pos.CENTER);
+        actions.setPadding(new Insets(12));
+
+        VBox center = new VBox(specialBox, handArea, actions);
+        VBox.setVgrow(handArea, Priority.ALWAYS);
+        return center;
+    }
+
+    /** 右侧牌组计数（剩余牌数）。 */
+    private VBox buildDeckCounter() {
+        Label title = new Label("牌组");
+        title.setStyle(TEXT_MID);
+        VBox box = new VBox(6, title, deckCountLabel);
+        box.setAlignment(Pos.BOTTOM_CENTER);
+        box.setPadding(new Insets(14));
+        box.setPrefWidth(90);
+        return box;
+    }
+
+    /** 信息栏小面板：标题 + 大数字。 */
+    private VBox panel(String title, Label value) {
+        Label t = new Label(title);
+        t.setStyle(TEXT_MID);
+        VBox inner = new VBox(4, t, value);
+        inner.setAlignment(Pos.CENTER_LEFT);
+        inner.setPadding(new Insets(10, 14, 10, 14));
+        inner.setStyle(PANEL_INNER);
+        VBox wrapper = new VBox(inner);
+        wrapper.setPadding(new Insets(4));
+        wrapper.setStyle(PANEL);
+        return wrapper;
+    }
+
+    /** 大数字标签。 */
+    private static Label valueLabel() {
+        Label l = new Label("0");
+        l.setStyle(TEXT_BIG);
+        return l;
+    }
+
+    /** 按钮统一配色。 */
+    private void styleButton(Button b, String color) {
+        b.setStyle("-fx-background-color: " + color + "; -fx-text-fill: white;"
+                + "-fx-font-size: 15px; -fx-font-weight: bold;"
+                + "-fx-background-radius: 8; -fx-padding: 8 22 8 22;");
     }
 
     /** 绑定按钮与卡牌点击事件到控制器。 */
@@ -105,19 +180,24 @@ public class GameViewFx implements GameView {
     /** 刷新状态区各数值。 */
     @Override
     public void renderStatus(int remainingTarget, int plays, int discards, int coins) {
-        targetLabel.setText("剩余目标分: " + Math.max(0, remainingTarget));
-        playsLabel.setText("出牌: " + plays);
-        discardsLabel.setText("弃牌: " + discards);
-        coinsLabel.setText("代币: " + coins);
+        targetLabel.setText(String.valueOf(Math.max(0, remainingTarget)));
+        playsLabel.setText(String.valueOf(plays));
+        discardsLabel.setText(String.valueOf(discards));
+        coinsLabel.setText(String.valueOf(coins));
     }
 
-    /** 刷新关卡号与本局总分（状态区扩展信息）。 */
+    /** 刷新关卡号与本局总分。 */
     public void renderProgress(int level, int totalScore) {
-        levelLabel.setText("第 " + level + " 关");
-        totalLabel.setText("总分: " + totalScore);
+        levelLabel.setText(String.valueOf(level));
+        totalLabel.setText(String.valueOf(totalScore));
     }
 
-    /** 刷新功能牌栏：点击缩放反馈由按钮自带，弹出效果说明。 */
+    /** 刷新牌组剩余计数。 */
+    public void renderDeckCount(int remaining) {
+        deckCountLabel.setText(String.valueOf(remaining));
+    }
+
+    /** 刷新功能牌栏：点击缩放反馈并弹出效果说明。 */
     public void renderSpecialCards(List<SpecialCard> specials) {
         specialArea.getChildren().clear();
         for (SpecialCard s : specials) {
@@ -145,7 +225,6 @@ public class GameViewFx implements GameView {
     @Override
     public void playScoreEffect(int score) {
         scoreEffectLabel.setText("+" + score);
-        scoreEffectLabel.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #e65100;");
     }
 
     /** 弹功能牌说明浮层。 */

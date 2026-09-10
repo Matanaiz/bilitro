@@ -97,12 +97,13 @@ public class DefaultGameController implements GameController {
                 .ifPresent(view::showSpecialCardTip);
     }
 
-    /** 全量刷新界面：手牌、状态、进度、功能牌栏、按钮亮灰。 */
+    /** 全量刷新界面：手牌、状态、进度、功能牌栏、牌组计数、按钮亮灰。 */
     public void refresh() {
         view.renderHand(session.hand(), selected);
         view.renderStatus(session.remainingTargetScore(), session.remainingPlays(),
                 session.remainingDiscards(), session.player().coins());
         view.renderProgress(session.currentLevel(), session.totalScore());
+        view.renderDeckCount(session.remainingDeck().size());
         view.renderSpecialCards(session.player().specialCards());
         view.setActionEnabled(evaluator.isPlayable(selected) && session.remainingPlays() > 0,
                 !selected.isEmpty() && session.remainingDiscards() > 0);
