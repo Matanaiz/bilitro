@@ -48,7 +48,6 @@ public class GameViewFx implements GameView {
     private final Label discardsLabel = valueLabel();
     private final Label coinsLabel = valueLabel();
     private final Label deckCountLabel = valueLabel();
-    private final Label scoreEffectLabel = new Label();
 
     private final Button playButton = new Button("出牌");
     private final Button discardButton = new Button("弃牌");
@@ -136,11 +135,10 @@ public class GameViewFx implements GameView {
         handArea.setPadding(new Insets(10));
         handArea.setFillHeight(false); // 手牌保持原始比例，不被拉伸
 
-        scoreEffectLabel.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #ffb300;");
         styleButton(playButton, "#2e7ddb");
         styleButton(discardButton, "#d3355b");
         styleButton(deckButton, "#555f6e");
-        HBox actions = new HBox(14, playButton, discardButton, deckButton, scoreEffectLabel);
+        HBox actions = new HBox(14, playButton, discardButton, deckButton);
         actions.setAlignment(Pos.CENTER);
         actions.setPadding(new Insets(12));
         actions.setMinHeight(70); // 底部操作区保底高度
@@ -314,10 +312,12 @@ public class GameViewFx implements GameView {
         discardButton.setDisable(!canDiscard);
     }
 
-    /** 计分反馈：P0 显示本次得分文本，P2 换数字跳动动画。 */
+    /** 计分反馈：在中间计分过程区末尾显示本次得分文本（P2 换数字跳动动画）。 */
     @Override
     public void playScoreEffect(int score) {
-        scoreEffectLabel.setText("+" + score);
+        Label scoreLabel = new Label("+" + score);
+        scoreLabel.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #ffb300;");
+        processArea.getChildren().add(scoreLabel);
     }
 
     /** 弹功能牌说明浮层。 */
