@@ -106,7 +106,7 @@ public class DefaultGameController implements GameController {
     /** 全量刷新界面：手牌、状态、进度、功能牌栏、牌组计数、按钮亮灰。 */
     public void refresh() {
         view.renderHand(session.hand(), selected);
-        view.renderStatus(session.remainingTargetScore(), session.remainingPlays(),
+        view.renderStatus(session.targetScore(), session.remainingPlays(),
                 session.remainingDiscards(), session.player().coins());
         view.renderProgress(session.currentLevel(), session.levelScore());
         view.renderDeckCount(session.remainingDeck().size());

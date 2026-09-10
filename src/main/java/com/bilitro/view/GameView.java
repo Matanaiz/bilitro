@@ -12,7 +12,7 @@ public interface GameView {
     void renderHand(List<Card> hand, List<Card> selected);
 
     /** 刷新剩余目标分、剩余出牌/弃牌次数、货币。 */
-    void renderStatus(int remainingTarget, int plays, int discards, int coins);
+    void renderStatus(int targetScore, int plays, int discards, int coins);
 
     /** 按规则校验结果亮/灰出牌与弃牌按钮。 */
     void setActionEnabled(boolean canPlay, boolean canDiscard);

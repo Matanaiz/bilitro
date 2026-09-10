@@ -49,6 +49,12 @@ public class DefaultGameSession implements GameSession {
         return level;
     }
 
+    /** 返回本关的目标得分（固定值，一关内不变）。 */
+    @Override
+    public int targetScore() {
+        return rule.targetScore();
+    }
+
     /** 返回距离过关还差的分数。 */
     @Override
     public int remainingTargetScore() {

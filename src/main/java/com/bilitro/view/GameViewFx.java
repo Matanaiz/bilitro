@@ -269,10 +269,10 @@ public class GameViewFx implements GameView {
         timeline.play();
     }
 
-    /** 刷新状态区各数值。 */
+    /** 刷新状态区各数值（目标得分为本关固定值，一关内不变）。 */
     @Override
-    public void renderStatus(int remainingTarget, int plays, int discards, int coins) {
-        targetLabel.setText(String.valueOf(Math.max(0, remainingTarget)));
+    public void renderStatus(int targetScore, int plays, int discards, int coins) {
+        targetLabel.setText(String.valueOf(targetScore));
         playsLabel.setText(String.valueOf(plays));
         discardsLabel.setText(String.valueOf(discards));
         coinsLabel.setText(String.valueOf(coins));

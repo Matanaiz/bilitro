@@ -12,6 +12,9 @@ public interface GameSession {
 
     int currentLevel();
 
+    /** 本关的目标得分（固定值，一关内不随出牌变化）。 */
+    int targetScore();
+
     int remainingTargetScore();
 
     int remainingPlays();
