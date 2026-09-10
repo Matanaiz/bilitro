@@ -33,6 +33,25 @@ public interface SpecialCard {
         return true;
     }
 
+    /**
+     * 重触发：返回当前这张计分手牌应额外计分的次数（0 表示计分一次，不重触发）。
+     * 例如"重触发每张 2/3/4/5"对这些牌返回 1，则该牌的点数与逐张效果重复结算两次。
+     *
+     * @param card 当前计分手牌
+     * @param allFaceCards 是否所有牌均视为人头牌（"幻视"效果）
+     */
+    default int retriggerCount(com.bilitro.model.card.Card card, boolean allFaceCards) {
+        return 0;
+    }
+
+    /**
+     * 元规则：返回 true 表示持有本牌期间所有手牌均视为人头牌（"幻视"）。
+     * 影响人头牌条件与"重触发人头牌"的判定。
+     */
+    default boolean allCardsFace() {
+        return false;
+    }
+
     // TODO(答复 1/3): 手牌数量、出牌/弃牌次数的修改类效果，建议在配置表中加
     //  passive 修饰字段（如 handSizeDelta / playsDelta），由 GameSession 开局时汇总生效。
 }

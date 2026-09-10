@@ -121,4 +121,110 @@ class DefaultScoreCalculatorTest {
                 eval(HandType.HIGH_CARD, c(Rank.ACE)), List.of());
         assertEquals(16, result.finalScore());
     }
+
+    @Test
+    void 微笑表情只给人头牌加倍率() {
+        // 对子 5+5：无人头牌，倍率不变
+        var noFace = calculator.score(
+                eval(HandType.PAIR, c(Rank.FIVE), c(Rank.FIVE)),
+                List.of(joker("smiley_face", ConfiguredSpecialCard.EffectType.ADD_MULT, 5,
+                        ConfiguredSpecialCard.ConditionType.SCORING_FACE, null)));
+        assertEquals(2, noFace.finalMult());
+        // 对子 K+K：两张人头各 +5，倍率 2+10=12
+        var faces = calculator.score(
+                eval(HandType.PAIR, c(Rank.KING), c(Rank.KING)),
+                List.of(joker("smiley_face", ConfiguredSpecialCard.EffectType.ADD_MULT, 5,
+                        ConfiguredSpecialCard.ConditionType.SCORING_FACE, null)));
+        assertEquals(12, faces.finalMult());
+        // (10 + 20) × 12 = 360
+        assertEquals(360, faces.finalScore());
+    }
+
+    @Test
+    void 恐怖面孔只给人头牌加积分() {
+        // 对子 K+5：只有 K 触发 +30
+        var result = calculator.score(
+                eval(HandType.PAIR, c(Rank.KING), c(Rank.FIVE)),
+                List.of(joker("scary_face", ConfiguredSpecialCard.EffectType.ADD_CHIPS, 30,
+                        ConfiguredSpecialCard.ConditionType.SCORING_FACE, null)));
+        assertEquals(30, result.bonusChips());
+    }
+
+    @Test
+    void 斐波那契只对指定点数触发() {
+        // 对子 A+A：两张都在集合中，倍率 2+16=18
+        var result = calculator.score(
+                eval(HandType.PAIR, c(Rank.ACE), c(Rank.ACE)),
+                List.of(joker("fibonacci", ConfiguredSpecialCard.EffectType.ADD_MULT, 8,
+                        ConfiguredSpecialCard.ConditionType.SCORING_RANKS,
+                        "ACE,TWO,THREE,FIVE,EIGHT")));
+        assertEquals(18, result.finalMult());
+    }
+
+    @Test
+    void 抽象小丑按持有功能牌数量加倍率() {
+        // 只持有抽象小丑：倍率 2+3×1=5
+        var alone = calculator.score(
+                eval(HandType.PAIR, c(Rank.TEN), c(Rank.TEN)),
+                List.of(joker("abstract_joker", ConfiguredSpecialCard.EffectType.ADD_MULT_PER_SPECIAL, 3,
+                        ConfiguredSpecialCard.ConditionType.ALWAYS, null)));
+        assertEquals(5, alone.finalMult());
+        // 持有 3 张功能牌：倍率 2+3×3=11
+        var three = calculator.score(
+                eval(HandType.PAIR, c(Rank.TEN), c(Rank.TEN)),
+                List.of(joker("abstract_joker", ConfiguredSpecialCard.EffectType.ADD_MULT_PER_SPECIAL, 3,
+                                ConfiguredSpecialCard.ConditionType.ALWAYS, null),
+                        addChips(30), addChips(30)));
+        assertEquals(11, three.finalMult());
+    }
+
+    @Test
+    void 烂脱口秀演员重触发低牌() {
+        // 对子 3+3：每张计分两次，点数 3×2×2=12，得分 (10+12)×2=44
+        var result = calculator.score(
+                eval(HandType.PAIR, c(Rank.THREE), c(Rank.THREE)),
+                List.of(joker("hack", ConfiguredSpecialCard.EffectType.ADD_CHIPS, 1,
+                        ConfiguredSpecialCard.ConditionType.RETRIGGER_RANKS,
+                        "TWO,THREE,FOUR,FIVE")));
+        assertEquals(12, result.cardChips());
+        assertEquals(44, result.finalScore());
+    }
+
+    @Test
+    void 喜与悲重触发人头牌() {
+        // 对子 K+K：每张计分两次，点数 10×2×2=40，得分 (10+40)×2=100
+        var result = calculator.score(
+                eval(HandType.PAIR, c(Rank.KING), c(Rank.KING)),
+                List.of(joker("sock_and_buskin", ConfiguredSpecialCard.EffectType.ADD_CHIPS, 1,
+                        ConfiguredSpecialCard.ConditionType.RETRIGGER_FACE, null)));
+        assertEquals(40, result.cardChips());
+        assertEquals(100, result.finalScore());
+    }
+
+    @Test
+    void 幻视让所有牌都视为人头牌() {
+        // 对子 5+5 + 幻视 + 微笑表情：两张 5 均按人头牌 +5 倍率，倍率 2+10=12
+        var result = calculator.score(
+                eval(HandType.PAIR, c(Rank.FIVE), c(Rank.FIVE)),
+                List.of(joker("pareidolia", ConfiguredSpecialCard.EffectType.ADD_CHIPS, 0,
+                                ConfiguredSpecialCard.ConditionType.META_FACE, null),
+                        joker("smiley_face", ConfiguredSpecialCard.EffectType.ADD_MULT, 5,
+                                ConfiguredSpecialCard.ConditionType.SCORING_FACE, null)));
+        assertEquals(12, result.finalMult());
+        // (10 + 10) × 12 = 240
+        assertEquals(240, result.finalScore());
+    }
+
+    @Test
+    void 幻视配合喜与悲重触发所有牌() {
+        // 对子 5+5 + 幻视 + 喜与悲：两张 5 均按人头牌重触发，点数 5×2×2=20
+        var result = calculator.score(
+                eval(HandType.PAIR, c(Rank.FIVE), c(Rank.FIVE)),
+                List.of(joker("pareidolia", ConfiguredSpecialCard.EffectType.ADD_CHIPS, 0,
+                                ConfiguredSpecialCard.ConditionType.META_FACE, null),
+                        joker("sock_and_buskin", ConfiguredSpecialCard.EffectType.ADD_CHIPS, 1,
+                                ConfiguredSpecialCard.ConditionType.RETRIGGER_FACE, null)));
+        assertEquals(20, result.cardChips());
+        assertEquals(60, result.finalScore());
+    }
 }

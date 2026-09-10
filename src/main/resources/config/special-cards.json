@@ -64,5 +64,93 @@
     "effectValue": 50,
     "conditionType": "HAND_TYPE",
     "conditionValue": "PAIR"
+  },
+  {
+    "id": "abstract_joker",
+    "name": "抽象小丑",
+    "description": "每持有一张功能牌，+3 倍率",
+    "price": 4,
+    "image": "",
+    "effectType": "ADD_MULT_PER_SPECIAL",
+    "effectValue": 3,
+    "conditionType": "ALWAYS",
+    "conditionValue": null
+  },
+  {
+    "id": "astute_joker",
+    "name": "精明小丑",
+    "description": "如果打出的牌包含同花，给予 +80 积分",
+    "price": 4,
+    "image": "",
+    "effectType": "ADD_CHIPS",
+    "effectValue": 80,
+    "conditionType": "HAND_TYPE",
+    "conditionValue": "FLUSH"
+  },
+  {
+    "id": "scary_face",
+    "name": "恐怖面孔",
+    "description": "打出的人头牌在计分时给予 +30 积分",
+    "price": 4,
+    "image": "",
+    "effectType": "ADD_CHIPS",
+    "effectValue": 30,
+    "conditionType": "SCORING_FACE",
+    "conditionValue": null
+  },
+  {
+    "id": "smiley_face",
+    "name": "微笑表情",
+    "description": "打出的人头牌在计分时给予 +5 倍率",
+    "price": 4,
+    "image": "",
+    "effectType": "ADD_MULT",
+    "effectValue": 5,
+    "conditionType": "SCORING_FACE",
+    "conditionValue": null
+  },
+  {
+    "id": "fibonacci",
+    "name": "斐波那契",
+    "description": "每张打出的 A、2、3、5 或 8 在计分时给予 +8 倍率",
+    "price": 8,
+    "image": "",
+    "effectType": "ADD_MULT",
+    "effectValue": 8,
+    "conditionType": "SCORING_RANKS",
+    "conditionValue": "ACE,TWO,THREE,FIVE,EIGHT"
+  },
+  {
+    "id": "hack",
+    "name": "烂脱口秀演员",
+    "description": "重触发每张打出的 2、3、4 或 5",
+    "price": 6,
+    "image": "",
+    "effectType": "ADD_CHIPS",
+    "effectValue": 1,
+    "conditionType": "RETRIGGER_RANKS",
+    "conditionValue": "TWO,THREE,FOUR,FIVE"
+  },
+  {
+    "id": "sock_and_buskin",
+    "name": "喜与悲",
+    "description": "重触发所有打出的人头牌",
+    "price": 6,
+    "image": "",
+    "effectType": "ADD_CHIPS",
+    "effectValue": 1,
+    "conditionType": "RETRIGGER_FACE",
+    "conditionValue": null
+  },
+  {
+    "id": "pareidolia",
+    "name": "幻视",
+    "description": "所有手牌均视为人头牌",
+    "price": 5,
+    "image": "",
+    "effectType": "ADD_CHIPS",
+    "effectValue": 0,
+    "conditionType": "META_FACE",
+    "conditionValue": null
   }
 ]

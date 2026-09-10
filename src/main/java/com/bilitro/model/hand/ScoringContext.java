@@ -25,6 +25,10 @@ public final class ScoringContext {
     private Card currentCard;
     /** 是否正在处理第一张计分手牌（整手一次的效果只在这一步触发）。 */
     private boolean firstCard;
+    /** 是否把所有手牌视为人头牌（功能牌"幻视"的元规则效果）。 */
+    private boolean allFaceCards;
+    /** 当前持有的功能牌数量（"每有一张功能牌"类效果用）。 */
+    private int specialCount;
 
     public ScoringContext(int baseChips, int baseMult) {
         this(baseChips, baseMult, null);
@@ -55,6 +59,26 @@ public final class ScoringContext {
     /** 返回当前是否第一张计分手牌。 */
     public boolean isFirstCard() {
         return firstCard;
+    }
+
+    /** 由计分器在计分前设置：是否把所有手牌视为人头牌。 */
+    public void setAllFaceCards(boolean allFaceCards) {
+        this.allFaceCards = allFaceCards;
+    }
+
+    /** 返回是否把所有手牌视为人头牌。 */
+    public boolean allFaceCards() {
+        return allFaceCards;
+    }
+
+    /** 由计分器在计分前设置：当前持有的功能牌数量。 */
+    public void setSpecialCount(int specialCount) {
+        this.specialCount = specialCount;
+    }
+
+    /** 返回当前持有的功能牌数量。 */
+    public int specialCount() {
+        return specialCount;
     }
 
     public int chips() {

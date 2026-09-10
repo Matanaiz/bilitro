@@ -21,9 +21,7 @@ public class DefaultScoreCalculator implements ScoreCalculator {
     @Override
     public ScoreBreakdown score(Evaluation eval, List<SpecialCard> specials) {
         List<ScoreStep> steps = steps(eval, specials);
-        int cardChips = eval.scoringCards().stream()
-                .mapToInt(c -> c.rank().chips())
-                .sum();
+        int cardChips = cardChipsWithRetrigger(eval, specials);
         ScoreStep last = steps.get(steps.size() - 1);
         return new ScoreBreakdown(
                 eval.type().baseScore(),
@@ -34,6 +32,16 @@ public class DefaultScoreCalculator implements ScoreCalculator {
                 last.chipsAfter() * last.multAfter());
     }
 
+    /** 手牌点数合计（计入重触发：被重触发的牌点数重复累加）。 */
+    private int cardChipsWithRetrigger(Evaluation eval, List<SpecialCard> specials) {
+        boolean allFace = allCardsFace(specials);
+        int sum = 0;
+        for (var card : eval.scoringCards()) {
+            sum += card.rank().chips() * (1 + retriggerCount(specials, card, allFace));
+        }
+        return sum;
+    }
+
     /**
      * 分步计分：逐张累加点数并触发一轮功能牌，每步记录
      * （手牌, 当前积分, 当前倍数）快照，供界面播放计分过程。
@@ -42,19 +50,26 @@ public class DefaultScoreCalculator implements ScoreCalculator {
     public List<ScoreStep> steps(Evaluation eval, List<SpecialCard> specials) {
         HandType type = eval.type();
         ScoringContext ctx = new ScoringContext(type.baseScore(), type.baseMultiplier(), type);
+        boolean allFace = allCardsFace(specials);
+        ctx.setAllFaceCards(allFace);
+        ctx.setSpecialCount(specials.size());
 
         List<ScoreStep> steps = new ArrayList<>();
         boolean first = true;
         for (var card : eval.scoringCards()) {
-            ctx.addChips(card.rank().chips());
             ctx.setCurrentCard(card, first);
-            // 每处理一张手牌，触发一轮逐张类功能牌（如花色条件）
-            for (SpecialCard special : specials) {
-                if (special.triggerPerCard()) {
-                    special.onScore(ctx);
+            // 重触发：满足条件的功能牌会让这张牌额外计分若干次
+            int repeats = 1 + retriggerCount(specials, card, allFace);
+            for (int i = 0; i < repeats; i++) {
+                ctx.addChips(card.rank().chips());
+                // 每处理一张手牌，触发一轮逐张类功能牌（花色、人头、点数条件）
+                for (SpecialCard special : specials) {
+                    if (special.triggerPerCard()) {
+                        special.onScore(ctx);
+                    }
                 }
+                steps.add(new ScoreStep(card, ctx.chips(), ctx.mult()));
             }
-            steps.add(new ScoreStep(card, ctx.chips(), ctx.mult()));
             first = false;
         }
         // 整手类功能牌（无条件、牌型条件）在结算末尾触发一次
@@ -70,5 +85,19 @@ public class DefaultScoreCalculator implements ScoreCalculator {
             steps.add(new ScoreStep(null, ctx.chips(), ctx.mult()));
         }
         return steps;
+    }
+
+    /** 是否有"所有牌均视为人头牌"的元规则功能牌（幻视）。 */
+    private boolean allCardsFace(List<SpecialCard> specials) {
+        return specials.stream().anyMatch(SpecialCard::allCardsFace);
+    }
+
+    /** 汇总所有功能牌对当前这张牌的重触发次数。 */
+    private int retriggerCount(List<SpecialCard> specials, com.bilitro.model.card.Card card, boolean allFace) {
+        int count = 0;
+        for (SpecialCard special : specials) {
+            count += special.retriggerCount(card, allFace);
+        }
+        return count;
     }
 }
