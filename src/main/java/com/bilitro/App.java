@@ -49,7 +49,7 @@ public class App extends Application {
 
         GameViewFx view = new GameViewFx(); // 先建视图，控制器在下面注入
         DefaultGameController controller = new DefaultGameController(session,
-                new DefaultHandTypeEvaluator(), view);
+                new DefaultHandTypeEvaluator(), new DefaultScoreCalculator(), view);
         view.bindController(controller);
         controller.setOutcomeHandler(this::onGameEnd);
         controller.refresh();

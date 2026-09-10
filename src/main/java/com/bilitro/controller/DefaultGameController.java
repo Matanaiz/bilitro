@@ -5,6 +5,7 @@ import com.bilitro.model.card.Card;
 import com.bilitro.model.game.GameSession;
 import com.bilitro.model.game.LevelRule;
 import com.bilitro.model.hand.HandTypeEvaluator;
+import com.bilitro.model.hand.ScoreCalculator;
 import com.bilitro.model.player.SpecialCard;
 import com.bilitro.view.GameViewFx;
 
@@ -21,6 +22,7 @@ public class DefaultGameController implements GameController {
 
     private final GameSession session;
     private final HandTypeEvaluator evaluator;
+    private final ScoreCalculator calculator;
     private final GameViewFx view;
     private final List<Card> selected = new ArrayList<>();
 
@@ -28,9 +30,11 @@ public class DefaultGameController implements GameController {
     private Consumer<GameSession.RoundOutcome> outcomeHandler = o -> { };
 
     /** 创建控制器并刷新一次界面。 */
-    public DefaultGameController(GameSession session, HandTypeEvaluator evaluator, GameViewFx view) {
+    public DefaultGameController(GameSession session, HandTypeEvaluator evaluator,
+                                 ScoreCalculator calculator, GameViewFx view) {
         this.session = session;
         this.evaluator = evaluator;
+        this.calculator = calculator;
         this.view = view;
     }
 
@@ -105,8 +109,21 @@ public class DefaultGameController implements GameController {
         view.renderProgress(session.currentLevel(), session.totalScore());
         view.renderDeckCount(session.remainingDeck().size());
         view.renderSpecialCards(session.player().specialCards());
+        refreshPreview();
         view.setActionEnabled(evaluator.isPlayable(selected) && session.remainingPlays() > 0,
                 !selected.isEmpty() && session.remainingDiscards() > 0);
+    }
+
+    /** 刷新计分预览：选中牌可出时试算牌型与得分（含功能牌），否则清空预览。 */
+    private void refreshPreview() {
+        var eval = evaluator.evaluateDetail(selected);
+        if (eval.isEmpty()) {
+            view.renderPreview(null, null, null, null);
+            return;
+        }
+        var b = calculator.score(eval.get(), session.player().specialCards());
+        int chips = b.baseChips() + b.cardChips() + b.bonusChips();
+        view.renderPreview(eval.get().type().displayName(), chips, b.finalMult(), b.finalScore());
     }
 
     /** 检查对局结局：过关则发奖励并进入下一关，终局则交给回调。 */

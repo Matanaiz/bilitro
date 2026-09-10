@@ -53,6 +53,12 @@ public class GameViewFx implements GameView {
     private final Button discardButton = new Button("弃牌");
     private final Button deckButton = new Button("查看牌组");
 
+    /** 中央计分预览区：当前选中牌的牌型、积分与倍数。 */
+    private final Label previewTypeLabel = new Label("未选牌");
+    private final Label previewChipsLabel = valueLabel();
+    private final Label previewMultLabel = valueLabel();
+    private final Label previewScoreLabel = new Label();
+
     /** 创建对局界面（控制器随后通过 bindController 注入）。 */
     public GameViewFx() {
         buildLayout();
@@ -77,11 +83,13 @@ public class GameViewFx implements GameView {
         root.setRight(buildDeckCounter());
     }
 
-    /** 左侧信息栏：目标分、总分、出牌/弃牌次数、关卡、代币。 */
+    /** 左侧信息栏：目标分、总分、当前积分、当前倍数、出牌/弃牌次数、关卡、代币。 */
     private VBox buildSidebar() {
         VBox box = new VBox(10,
                 panel("目标得分", targetLabel),
                 panel("本局总分", totalLabel),
+                panel("当前积分", previewChipsLabel),
+                panel("当前倍数", previewMultLabel),
                 panel("出牌次数", playsLabel),
                 panel("弃牌次数", discardsLabel),
                 panel("关卡", levelLabel),
@@ -92,7 +100,7 @@ public class GameViewFx implements GameView {
         return box;
     }
 
-    /** 中央区域：上方功能牌栏，下方手牌区与操作按钮。 */
+    /** 中央区域：上方功能牌栏，中间计分预览区，下方手牌区与操作按钮。 */
     private VBox buildCenter() {
         Label specialTitle = new Label("功能牌");
         specialTitle.setStyle(TEXT_MID);
@@ -100,8 +108,11 @@ public class GameViewFx implements GameView {
         specialBox.setAlignment(Pos.TOP_CENTER);
         specialBox.setPadding(new Insets(12));
 
+        VBox previewBox = buildPreviewBox();
+
         handArea.setAlignment(Pos.BOTTOM_CENTER);
-        handArea.setPadding(new Insets(20, 10, 10, 10));
+        handArea.setPadding(new Insets(10));
+        handArea.setFillHeight(false); // 手牌保持原始比例，不被拉伸
 
         scoreEffectLabel.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #ffb300;");
         styleButton(playButton, "#2e7ddb");
@@ -111,9 +122,18 @@ public class GameViewFx implements GameView {
         actions.setAlignment(Pos.CENTER);
         actions.setPadding(new Insets(12));
 
-        VBox center = new VBox(specialBox, handArea, actions);
-        VBox.setVgrow(handArea, Priority.ALWAYS);
+        VBox center = new VBox(specialBox, previewBox, handArea, actions);
+        VBox.setVgrow(previewBox, Priority.ALWAYS); // 多余空间留给中间预览区
         return center;
+    }
+
+    /** 中间计分预览区：显示选中牌型与预计得分。 */
+    private VBox buildPreviewBox() {
+        previewTypeLabel.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: white;");
+        previewScoreLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #ffb300;");
+        VBox box = new VBox(8, previewTypeLabel, previewScoreLabel);
+        box.setAlignment(Pos.CENTER);
+        return box;
     }
 
     /** 右侧牌组计数（剩余牌数）。 */
@@ -162,11 +182,14 @@ public class GameViewFx implements GameView {
         deckButton.setOnAction(e -> controller.onViewDeck());
     }
 
-    /** 刷新手牌区：重建卡牌控件，保持选中状态，点击切换选中。 */
+    /** 刷新手牌区：按点数从大到小排列展示，保持选中状态，点击切换选中。 */
     @Override
     public void renderHand(List<Card> hand, List<Card> selected) {
         handArea.getChildren().clear();
-        for (Card card : hand) {
+        List<Card> sorted = hand.stream()
+                .sorted(java.util.Comparator.comparingInt((Card c) -> c.rank().value()).reversed())
+                .toList();
+        for (Card card : sorted) {
             CardNode node = new CardNode(card);
             node.setSelected(selected.contains(card));
             node.setOnMouseClicked(e -> {
@@ -175,6 +198,24 @@ public class GameViewFx implements GameView {
             });
             handArea.getChildren().add(node);
         }
+    }
+
+    /**
+     * 刷新计分预览：中间区域显示选中牌型与预计得分，左侧显示积分与倍数。
+     * selection 为空或不合法时传 null 清空显示。
+     */
+    public void renderPreview(String handTypeName, Integer chips, Integer mult, Integer score) {
+        if (handTypeName == null) {
+            previewTypeLabel.setText("未选牌");
+            previewScoreLabel.setText("");
+            previewChipsLabel.setText("0");
+            previewMultLabel.setText("0");
+            return;
+        }
+        previewTypeLabel.setText(handTypeName);
+        previewScoreLabel.setText("预计得分 " + score);
+        previewChipsLabel.setText(String.valueOf(chips));
+        previewMultLabel.setText(String.valueOf(mult));
     }
 
     /** 刷新状态区各数值。 */
