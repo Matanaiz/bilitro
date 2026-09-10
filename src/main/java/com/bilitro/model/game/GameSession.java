@@ -20,6 +20,9 @@ public interface GameSession {
 
     List<Card> hand();
 
+    /** 牌组剩余牌的只读快照（需求 2.2.6 查看牌组）。 */
+    List<Card> remainingDeck();
+
     Player player();
 
     /** 打出选中的牌：计分、扣减剩余目标、补牌、次数-1。 */

@@ -78,6 +78,12 @@ public class DefaultGameSession implements GameSession {
         return List.copyOf(hand);
     }
 
+    /** 返回牌组剩余牌的只读快照（查看牌组界面用）。 */
+    @Override
+    public List<Card> remainingDeck() {
+        return deck.peekRemaining();
+    }
+
     /** 返回本局玩家（货币与功能牌栏）。 */
     @Override
     public Player player() {

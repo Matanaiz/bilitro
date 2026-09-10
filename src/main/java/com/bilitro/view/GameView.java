@@ -22,4 +22,10 @@ public interface GameView {
 
     /** 弹功能牌说明浮层（再次点击或点关闭后消失）。 */
     void showSpecialCardTip(String description);
+
+    /** 弹剩余牌组查看浮层（需求 2.2.6）。 */
+    void showDeck(List<Card> remaining);
+
+    /** 弹通用提示（过关/胜利/失败等，P0 用文本，P2 换成动画）。 */
+    void showMessage(String message);
 }
