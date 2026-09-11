@@ -110,17 +110,37 @@ public class ShopViewFx implements ShopView {
         return col;
     }
 
-    /** 刷新"我的功能牌"栏：每张牌下方带半价出售按钮，点击牌面查看效果。 */
+    /** 刷新"我的功能牌"栏：固定六个深色卡槽，持有的牌填入槽中，下方带半价出售按钮。 */
     @Override
     public void renderOwned(List<SpecialCard> owned) {
         ownedArea.getChildren().clear();
-        for (SpecialCard item : owned) {
-            Button sell = new Button("出售 +$" + sellPrice(item));
-            sell.setStyle("-fx-font-size: 11px;");
-            sell.setOnAction(e -> controller.onSell(item));
-            SpecialCardNode node = new SpecialCardNode(item);
-            makeInspectable(node, item);
-            VBox col = new VBox(6, node, sell);
+        int limit = com.bilitro.model.GameConfig.SPECIAL_CARD_LIMIT;
+        for (int i = 0; i < limit; i++) {
+            // 空卡槽：深色半透明底 + 虚线边框，与对局界面一致
+            javafx.scene.layout.StackPane slot = new javafx.scene.layout.StackPane();
+            slot.setPrefSize(78, 108);
+            slot.setMinSize(78, 108);
+            slot.setMaxSize(78, 108);
+            slot.setStyle("-fx-background-color: rgba(0,0,0,0.35); -fx-background-radius: 8;"
+                    + "-fx-border-color: rgba(255,255,255,0.25); -fx-border-width: 2;"
+                    + "-fx-border-style: dashed; -fx-border-radius: 8;");
+
+            VBox col;
+            if (i < owned.size()) {
+                SpecialCard item = owned.get(i);
+                SpecialCardNode node = new SpecialCardNode(item);
+                makeInspectable(node, item);
+                slot.getChildren().add(node);
+                Button sell = new Button("出售 +$" + sellPrice(item));
+                sell.setStyle("-fx-font-size: 11px;");
+                sell.setOnAction(e -> controller.onSell(item));
+                col = new VBox(6, slot, sell);
+            } else {
+                // 空槽下方补等高占位，保持整排底部对齐
+                javafx.scene.layout.Region spacer = new javafx.scene.layout.Region();
+                spacer.setPrefHeight(24);
+                col = new VBox(6, slot, spacer);
+            }
             col.setAlignment(Pos.CENTER);
             ownedArea.getChildren().add(col);
         }
