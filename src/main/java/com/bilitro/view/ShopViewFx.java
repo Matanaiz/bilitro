@@ -54,6 +54,8 @@ public class ShopViewFx implements ShopView {
         Label title = new Label("商店");
         title.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: white;");
         coinsLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #ffd54f;");
+        styleButton(refreshButton, "#e08a2e", 13);
+        styleButton(leaveButton, "#2e7ddb", 13);
         HBox top = new HBox(20, title, coinsLabel, refreshButton, leaveButton);
         top.setAlignment(Pos.CENTER_LEFT);
         top.setPadding(new Insets(14));
@@ -100,6 +102,7 @@ public class ShopViewFx implements ShopView {
         desc.setMaxWidth(150);
         desc.setStyle("-fx-font-size: 12px; -fx-text-fill: #bcd;");
         Button buy = new Button("$" + item.price() + " 购买");
+        styleButton(buy, "#3d9e50", 12);
         buy.setOnAction(e -> controller.onBuy(item));
 
         VBox col = new VBox(8, node, desc, buy);
@@ -132,7 +135,7 @@ public class ShopViewFx implements ShopView {
                 makeInspectable(node, item);
                 slot.getChildren().add(node);
                 Button sell = new Button("出售 +$" + sellPrice(item));
-                sell.setStyle("-fx-font-size: 11px;");
+                styleButton(sell, "#a04b4b", 11);
                 sell.setOnAction(e -> controller.onSell(item));
                 col = new VBox(6, slot, sell);
             } else {
@@ -170,6 +173,22 @@ public class ShopViewFx implements ShopView {
     /** 出售价 = 购买价的一半（与 Shop.sellPrice 口径一致）。 */
     private int sellPrice(SpecialCard item) {
         return item.price() / 2;
+    }
+
+    /** 按钮统一样式：圆角投影、手型光标、悬停提亮、按下变暗。 */
+    private void styleButton(Button b, String color, int fontSize) {
+        String base = "-fx-background-color: " + color + "; -fx-text-fill: white;"
+                + "-fx-font-size: " + fontSize + "px; -fx-font-weight: bold;"
+                + "-fx-background-radius: 10; -fx-padding: 6 16 6 16;"
+                + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 6, 0, 0, 2);"
+                + "-fx-cursor: hand;";
+        String hover = base.replace(color, "derive(" + color + ", 25%)");
+        String pressed = base.replace(color, "derive(" + color + ", -20%)");
+        b.setStyle(base);
+        b.setOnMouseEntered(e -> b.setStyle(hover));
+        b.setOnMouseExited(e -> b.setStyle(base));
+        b.setOnMousePressed(e -> b.setStyle(pressed));
+        b.setOnMouseReleased(e -> b.setStyle(b.isHover() ? hover : base));
     }
 
     /** 刷新刷新按钮上的费用显示。 */

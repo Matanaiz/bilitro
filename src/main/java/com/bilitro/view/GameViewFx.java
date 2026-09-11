@@ -194,11 +194,20 @@ public class GameViewFx implements GameView {
         return l;
     }
 
-    /** 按钮统一配色。 */
+    /** 按钮统一配色与质感：圆角投影、手型光标、悬停提亮、按下变暗。 */
     private void styleButton(Button b, String color) {
-        b.setStyle("-fx-background-color: " + color + "; -fx-text-fill: white;"
+        String base = "-fx-background-color: " + color + "; -fx-text-fill: white;"
                 + "-fx-font-size: 15px; -fx-font-weight: bold;"
-                + "-fx-background-radius: 8; -fx-padding: 8 22 8 22;");
+                + "-fx-background-radius: 12; -fx-padding: 10 26 10 26;"
+                + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 8, 0, 0, 2);"
+                + "-fx-cursor: hand;";
+        String hover = base.replace(color, "derive(" + color + ", 25%)");
+        String pressed = base.replace(color, "derive(" + color + ", -20%)");
+        b.setStyle(base);
+        b.setOnMouseEntered(e -> b.setStyle(hover));
+        b.setOnMouseExited(e -> b.setStyle(base));
+        b.setOnMousePressed(e -> b.setStyle(pressed));
+        b.setOnMouseReleased(e -> b.setStyle(b.isHover() ? hover : base));
     }
 
     /** 绑定按钮与卡牌点击事件到控制器。 */
