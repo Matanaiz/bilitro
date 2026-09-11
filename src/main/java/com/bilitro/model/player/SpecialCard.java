@@ -102,4 +102,12 @@ public interface SpecialCard {
     default int levelClearCoins() {
         return 0;
     }
+
+    /**
+     * 随机花色类功能牌（古老小丑、城堡）当前生效的花色；非随机花色牌返回 null。
+     * 界面用来在牌面上直接显示花色标记。
+     */
+    default com.bilitro.model.card.Suit currentSuit() {
+        return null;
+    }
 }

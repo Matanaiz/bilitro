@@ -225,6 +225,12 @@ public class ConfiguredSpecialCard implements SpecialCard {
         return conditionType == ConditionType.META_MERGE_SUITS;
     }
 
+    /** 随机花色牌返回当前生效的花色（未抽过时先抽一次）；否则返回 null。 */
+    @Override
+    public Suit currentSuit() {
+        return suitMode != SuitMode.NONE ? rolledSuit() : null;
+    }
+
     /** 被动：每关弃牌次数修正。 */
     @Override
     public int discardsDelta() {
