@@ -88,9 +88,12 @@ class DefaultGameSessionTest {
                 new DefaultHandTypeEvaluator(), new DefaultScoreCalculator(),
                 player, new LevelRule(1, Set.of(), "测试关"));
         s.play(s.hand().subList(0, 1)); // 用掉 1 次出牌，剩 3 次
-        int reward = s.claimLevelClearReward();
+        var reward = s.claimLevelClearReward();
         // 4 固定 + 3 剩余出牌 + 2 利息 = 9
-        assertEquals(9, reward);
+        assertEquals(4, reward.base());
+        assertEquals(3, reward.playBonus());
+        assertEquals(2, reward.interest());
+        assertEquals(9, reward.total());
         assertEquals(19, player.coins());
     }
 

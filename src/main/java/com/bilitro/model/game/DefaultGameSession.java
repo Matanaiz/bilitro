@@ -139,13 +139,14 @@ public class DefaultGameSession implements GameSession {
         return remainingPlays <= 0 ? RoundOutcome.FAILED : RoundOutcome.ONGOING;
     }
 
-    /** 结算并发放通关奖励：固定奖励 + 剩余出牌奖励 + 利息，返回入账总额。 */
+    /** 结算并发放通关奖励：固定奖励 + 剩余出牌奖励 + 利息，返回奖励明细。 */
     @Override
-    public int claimLevelClearReward() {
-        int reward = GameConfig.LEVEL_CLEAR_REWARD
-                + remainingPlays * GameConfig.COIN_PER_REMAINING_PLAY
-                + player.coins() / GameConfig.INTEREST_EVERY_N_COINS;
-        player.addCoins(reward);
+    public RewardBreakdown claimLevelClearReward() {
+        RewardBreakdown reward = new RewardBreakdown(
+                GameConfig.LEVEL_CLEAR_REWARD,
+                remainingPlays * GameConfig.COIN_PER_REMAINING_PLAY,
+                player.coins() / GameConfig.INTEREST_EVERY_N_COINS);
+        player.addCoins(reward.total());
         return reward;
     }
 

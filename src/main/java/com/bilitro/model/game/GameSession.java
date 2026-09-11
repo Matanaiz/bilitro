@@ -46,9 +46,17 @@ public interface GameSession {
 
     /**
      * 领取通关奖励（答复 5）：固定 4 代币 + 每剩余 1 次出牌 1 代币
-     * + 上回合每剩余 5 代币 1 代币利息。返回本次入账总额。
+     * + 上回合每剩余 5 代币 1 代币利息。返回奖励明细（含各项与总额）。
      */
-    int claimLevelClearReward();
+    RewardBreakdown claimLevelClearReward();
+
+    /** 通关奖励明细：固定过关奖励、剩余出牌奖励、利息奖励。 */
+    record RewardBreakdown(int base, int playBonus, int interest) {
+        /** 奖励总额 = 三项之和。 */
+        public int total() {
+            return base + playBonus + interest;
+        }
+    }
 
     /** 进入下一关：加载关卡规则、重置次数与牌组。 */
     void advanceLevel(LevelRule rule);

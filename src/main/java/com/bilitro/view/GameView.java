@@ -28,4 +28,7 @@ public interface GameView {
 
     /** 弹通用提示（过关/胜利/失败等，P0 用文本，P2 换成动画）。 */
     void showMessage(String message);
+
+    /** 弹通关结算弹窗：本关得分与代币奖励明细（过关奖励、剩余出牌奖励、利息奖励）。 */
+    void showLevelClearReward(int levelScore, com.bilitro.model.game.GameSession.RewardBreakdown reward);
 }

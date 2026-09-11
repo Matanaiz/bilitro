@@ -135,8 +135,8 @@ public class DefaultGameController implements GameController {
         var outcome = session.outcome();
         switch (outcome) {
             case LEVEL_CLEARED -> {
-                int reward = session.claimLevelClearReward();
-                view.showMessage("过关！获得奖励 " + reward + " 代币");
+                var reward = session.claimLevelClearReward();
+                view.showLevelClearReward(session.levelScore(), reward);
                 view.clearProcess();
                 outcomeHandler.accept(outcome);
             }

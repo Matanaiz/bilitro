@@ -2,6 +2,7 @@ package com.bilitro.view;
 
 import com.bilitro.controller.GameController;
 import com.bilitro.model.card.Card;
+import com.bilitro.model.game.GameSession;
 import com.bilitro.model.player.SpecialCard;
 import com.bilitro.view.components.CardNode;
 import com.bilitro.view.components.SpecialCardNode;
@@ -348,6 +349,18 @@ public class GameViewFx implements GameView {
     @Override
     public void showMessage(String message) {
         alert("提示", message);
+    }
+
+    /** 弹通关结算弹窗：本关得分 + 代币奖励明细（过关奖励 / 剩余出牌奖励 / 利息奖励）。 */
+    @Override
+    public void showLevelClearReward(int levelScore, GameSession.RewardBreakdown reward) {
+        String content = "本关得分：" + levelScore + "\n\n"
+                + "代币获得：\n"
+                + "过关奖励 +" + reward.base() + "\n"
+                + "剩余出牌次数奖励 +" + reward.playBonus() + "\n"
+                + "利息奖励 +" + reward.interest() + "\n"
+                + "合计 +" + reward.total() + " 代币";
+        alert("过关！", content);
     }
 
     /** 弹窗工具（延后到下一个界面脉冲再弹，避免动画/布局回调中 showAndWait 报错）。 */
