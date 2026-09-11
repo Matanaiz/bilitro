@@ -7,21 +7,21 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 
 /**
- * 功能牌控件：与扑克牌一致的圆角卡牌样式（名称竖排居中）。
+ * 功能牌控件：与手牌一致的圆角卡牌样式（同尺寸、名称居中）。
  * 点击缩放反馈由使用方绑定；后续换美术资源时只需改本类绘制部分。
  */
 public class SpecialCardNode extends StackPane {
 
-    /** 卡牌尺寸（比手牌略小）。 */
-    private static final int WIDTH = 60;
-    private static final int HEIGHT = 88;
+    /** 卡牌尺寸（与手牌 CardNode 一致）。 */
+    private static final int WIDTH = 70;
+    private static final int HEIGHT = 100;
 
     /** 创建一张功能牌控件。 */
     public SpecialCardNode(SpecialCard card) {
         Label label = new Label(displayName(card));
         label.setWrapText(true);
         label.setMaxWidth(WIDTH - 10);
-        label.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #7b3fb5;"
+        label.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #7b3fb5;"
                 + "-fx-text-alignment: center;");
 
         setPrefSize(WIDTH, HEIGHT);
