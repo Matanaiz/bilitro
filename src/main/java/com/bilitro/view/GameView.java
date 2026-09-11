@@ -9,7 +9,7 @@ import java.util.List;
 public interface GameView {
 
     /** 刷新手牌区。 */
-    void renderHand(List<Card> hand, List<Card> selected);
+    void renderHand(List<Card> hand, List<Card> selected, List<Card> scoringCards);
 
     /** 刷新剩余目标分、剩余出牌/弃牌次数、货币。 */
     void renderStatus(int targetScore, int plays, int discards, int coins);

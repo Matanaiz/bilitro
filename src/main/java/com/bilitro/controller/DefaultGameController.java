@@ -120,7 +120,9 @@ public class DefaultGameController implements GameController {
 
     /** 全量刷新界面：手牌、状态、进度、功能牌栏、牌组计数、按钮亮灰。 */
     public void refresh() {
-        view.renderHand(session.hand(), selected);
+        var eval = evaluate(selected);
+        view.renderHand(session.hand(), selected,
+                eval.map(com.bilitro.model.hand.Evaluation::scoringCards).orElse(List.of()));
         view.renderStatus(session.targetScore(), session.remainingPlays(),
                 session.remainingDiscards(), session.player().coins());
         view.renderProgress(session.currentLevel(), session.levelScore());

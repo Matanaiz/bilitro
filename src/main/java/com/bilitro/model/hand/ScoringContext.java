@@ -31,6 +31,8 @@ public final class ScoringContext {
     private int specialCount;
     /** 本次打出的全部手牌（"花盆"等按整手花色判定的效果用）。 */
     private java.util.List<Card> playedCards;
+    /** 花色归并是否生效（"模糊小丑"：红桃=方块、梅花=黑桃）。 */
+    private boolean mergeSuits;
 
     public ScoringContext(int baseChips, int baseMult) {
         this(baseChips, baseMult, null);
@@ -91,6 +93,16 @@ public final class ScoringContext {
     /** 返回本次打出的全部手牌。 */
     public java.util.List<Card> playedCards() {
         return playedCards;
+    }
+
+    /** 由计分器在计分前设置：花色归并是否生效。 */
+    public void setMergeSuits(boolean mergeSuits) {
+        this.mergeSuits = mergeSuits;
+    }
+
+    /** 返回花色归并是否生效。 */
+    public boolean mergeSuits() {
+        return mergeSuits;
     }
 
     public int chips() {

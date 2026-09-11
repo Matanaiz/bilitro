@@ -54,6 +54,7 @@ public class DefaultScoreCalculator implements ScoreCalculator {
         ctx.setAllFaceCards(allFace);
         ctx.setSpecialCount(specials.size());
         ctx.setPlayedCards(eval.playedCards());
+        ctx.setMergeSuits(specials.stream().anyMatch(SpecialCard::mergesSuits));
 
         List<ScoreStep> steps = new ArrayList<>();
         boolean first = true;

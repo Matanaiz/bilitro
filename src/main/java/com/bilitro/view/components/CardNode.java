@@ -21,6 +21,8 @@ public class CardNode extends StackPane {
 
     private final Card card;
     private boolean selected;
+    /** 选中时是否参与计分（null 表示未选中）。 */
+    private Boolean scoringHint;
 
     /** 创建一张牌的控件。 */
     public CardNode(Card card) {
@@ -46,10 +48,20 @@ public class CardNode extends StackPane {
         return selected;
     }
 
-    /** 设置选中状态并刷新外观（选中上移 + 金色高亮边框）。 */
+    /** 设置选中状态并刷新外观（选中平滑上移 + 高亮边框）。 */
     public void setSelected(boolean selected) {
         this.selected = selected;
-        setTranslateY(selected ? -SELECT_LIFT : 0);
+        // 平滑上移/回落：120ms 过渡到目标位置，而不是瞬间跳变
+        var move = new javafx.animation.TranslateTransition(
+                javafx.util.Duration.millis(120), this);
+        move.setToY(selected ? -SELECT_LIFT : 0);
+        move.play();
+        applyStyle();
+    }
+
+    /** 设置计分提示：选中的牌中，参与计分的为 true，不计分的为 false。 */
+    public void setScoringHint(Boolean scoringHint) {
+        this.scoringHint = scoringHint;
         applyStyle();
     }
 
@@ -58,13 +70,20 @@ public class CardNode extends StackPane {
         setSelected(!selected);
     }
 
-    /** 按选中状态应用底色与边框。 */
+    /** 按选中与计分提示应用底色与边框：计分牌金色边框，选中但不计分的牌暗色虚线感边框。 */
     private void applyStyle() {
-        String border = selected
-                ? "-fx-border-color: gold; -fx-border-width: 3;"
-                : "-fx-border-color: #555; -fx-border-width: 1;";
+        String border;
+        if (!selected) {
+            border = "-fx-border-color: #555; -fx-border-width: 1;";
+        } else if (scoringHint == null || scoringHint) {
+            border = "-fx-border-color: gold; -fx-border-width: 3;";
+        } else {
+            border = "-fx-border-color: #888; -fx-border-width: 3;";
+        }
         setStyle("-fx-background-color: white; -fx-background-radius: 8;"
                 + "-fx-border-radius: 8;" + border);
+        // 选中但不计分的牌降低不透明度，直观区分"打出去但不算分"
+        setOpacity(selected && Boolean.FALSE.equals(scoringHint) ? 0.55 : 1.0);
     }
 
     /** 点数显示文本（J/Q/K/A 用字母）。 */

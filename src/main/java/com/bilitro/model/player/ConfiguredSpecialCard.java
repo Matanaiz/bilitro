@@ -291,7 +291,7 @@ public class ConfiguredSpecialCard implements SpecialCard {
         return switch (conditionType) {
             case ALWAYS -> true;
             case SCORING_SUIT -> ctx.currentCard() != null
-                    && ctx.currentCard().suit() == resolveSuit();
+                    && suitMatches(ctx.currentCard().suit(), resolveSuit(), ctx.mergeSuits());
             case HAND_TYPE -> handTypeContains(ctx.handType());
             case SCORING_FACE -> ctx.currentCard() != null
                     && isFace(ctx.currentCard(), ctx.allFaceCards());
@@ -310,6 +310,22 @@ public class ConfiguredSpecialCard implements SpecialCard {
             return rolledSuit();
         }
         return Suit.valueOf(conditionValue);
+    }
+
+    /** 花色比对：归并生效时按色系组比对（红桃=方块、梅花=黑桃），否则字面相等。 */
+    private boolean suitMatches(Suit actual, Suit wanted, boolean mergeSuits) {
+        if (!mergeSuits) {
+            return actual == wanted;
+        }
+        return suitGroup(actual) == suitGroup(wanted);
+    }
+
+    /** 花色归并分组：红桃/方块同组，梅花/黑桃同组。 */
+    private static int suitGroup(Suit suit) {
+        return switch (suit) {
+            case HEART, DIAMOND -> 0;
+            case CLUB, SPADE -> 1;
+        };
     }
 
     /** 判断是否人头牌（J/Q/K）；allFaceCards 为 true 时所有牌均视为人头牌。 */

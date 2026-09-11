@@ -208,9 +208,10 @@ public class GameViewFx implements GameView {
         deckButton.setOnAction(e -> controller.onViewDeck());
     }
 
-    /** 刷新手牌区：按点数从大到小排列展示，保持选中状态，点击切换选中。 */
+    /** 刷新手牌区：按点数从大到小排列展示，保持选中状态，点击切换选中。
+     *  选中的牌中，参与计分的用金色边框，不计分的用暗色边框加以区分。 */
     @Override
-    public void renderHand(List<Card> hand, List<Card> selected) {
+    public void renderHand(List<Card> hand, List<Card> selected, List<Card> scoringCards) {
         handArea.getChildren().clear();
         List<Card> sorted = hand.stream()
                 .sorted(java.util.Comparator.comparingInt((Card c) -> c.rank().value()).reversed())
@@ -218,6 +219,9 @@ public class GameViewFx implements GameView {
         for (Card card : sorted) {
             CardNode node = new CardNode(card);
             node.setSelected(selected.contains(card));
+            if (selected.contains(card)) {
+                node.setScoringHint(scoringCards.contains(card));
+            }
             node.setOnMouseClicked(e -> {
                 node.toggle();
                 controller.toggleSelect(card);
@@ -260,10 +264,13 @@ public class GameViewFx implements GameView {
             timeline.getKeyFrames().add(new javafx.animation.KeyFrame(
                     javafx.util.Duration.millis(400.0 * (i + 1)), e -> {
                 if (step.card() != null) {
-                    processArea.getChildren().add(new CardNode(step.card()));
+                    CardNode node = new CardNode(step.card());
+                    processArea.getChildren().add(node);
+                    popIn(node); // 卡牌平滑入场
                 }
-                previewChipsLabel.setText(String.valueOf(step.chipsAfter()));
-                previewMultLabel.setText(String.valueOf(step.multAfter()));
+                // 数值变化时弹跳：平滑放大再缩回原大小
+                bumpIfChanged(previewChipsLabel, step.chipsAfter());
+                bumpIfChanged(previewMultLabel, step.multAfter());
             }));
         }
         // 末尾补一个空关键帧：最后一张牌（及整手结算类功能牌）生效后多停一拍再落账
@@ -271,6 +278,40 @@ public class GameViewFx implements GameView {
                 javafx.util.Duration.millis(400.0 * (steps.size() + 1)), e -> { }));
         timeline.setOnFinished(e -> onFinished.run());
         timeline.play();
+    }
+
+    /** 数字有变化时更新文本并播放弹跳动画（先放大再缩小，200ms 平滑过渡）。 */
+    private void bumpIfChanged(Label label, int value) {
+        String text = String.valueOf(value);
+        if (label.getText().equals(text)) {
+            return;
+        }
+        label.setText(text);
+        var bump = new javafx.animation.ScaleTransition(javafx.util.Duration.millis(100), label);
+        bump.setFromX(1.0);
+        bump.setFromY(1.0);
+        bump.setToX(1.4);
+        bump.setToY(1.4);
+        bump.setAutoReverse(true); // 到最大后平滑缩回
+        bump.setCycleCount(2);
+        bump.play();
+    }
+
+    /** 卡牌入场动画：从透明小号平滑淡入放大到正常大小（180ms）。 */
+    private void popIn(javafx.scene.Node node) {
+        node.setOpacity(0);
+        node.setScaleX(0.6);
+        node.setScaleY(0.6);
+        var fade = new javafx.animation.FadeTransition(javafx.util.Duration.millis(180), node);
+        fade.setFromValue(0);
+        fade.setToValue(1);
+        var grow = new javafx.animation.ScaleTransition(javafx.util.Duration.millis(180), node);
+        grow.setFromX(0.6);
+        grow.setFromY(0.6);
+        grow.setToX(1.0);
+        grow.setToY(1.0);
+        fade.play();
+        grow.play();
     }
 
     /** 刷新状态区各数值（目标得分为本关固定值，一关内不变）。 */
