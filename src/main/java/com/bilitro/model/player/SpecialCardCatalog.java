@@ -37,6 +37,16 @@ public class SpecialCardCatalog {
         ConfiguredSpecialCard.GrowthType growthType;
         @SerializedName("growthValue")
         double growthValue;
+        @SerializedName("suitMode")
+        ConfiguredSpecialCard.SuitMode suitMode;
+        @SerializedName("discardsDelta")
+        int discardsDelta;
+        @SerializedName("handSizeDelta")
+        int handSizeDelta;
+        @SerializedName("creditLimit")
+        int creditLimit;
+        @SerializedName("levelClearCoins")
+        int levelClearCoins;
     }
 
     /** 加载全部功能牌；配置表为空时返回空列表。 */
@@ -55,7 +65,9 @@ public class SpecialCardCatalog {
                                 e.id, e.name, e.description, e.price,
                                 e.image, e.effectType, e.effectValue,
                                 e.conditionType, e.conditionValue,
-                                e.growthType, e.growthValue))
+                                e.growthType, e.growthValue, e.suitMode,
+                                e.discardsDelta, e.handSizeDelta, e.creditLimit,
+                                e.levelClearCoins))
                         .toList();
             }
         } catch (IOException e) {

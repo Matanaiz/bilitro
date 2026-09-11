@@ -50,11 +50,11 @@ public interface GameSession {
      */
     RewardBreakdown claimLevelClearReward();
 
-    /** 通关奖励明细：固定过关奖励、剩余出牌奖励、利息奖励。 */
-    record RewardBreakdown(int base, int playBonus, int interest) {
-        /** 奖励总额 = 三项之和。 */
+    /** 通关奖励明细：固定过关奖励、剩余出牌奖励、利息奖励、功能牌奖励（如"黄金小丑"）。 */
+    record RewardBreakdown(int base, int playBonus, int interest, int cardBonus) {
+        /** 奖励总额 = 四项之和。 */
         public int total() {
-            return base + playBonus + interest;
+            return base + playBonus + interest + cardBonus;
         }
     }
 

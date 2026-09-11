@@ -19,6 +19,14 @@ public interface HandTypeEvaluator {
      */
     Optional<Evaluation> evaluateDetail(List<Card> selected);
 
+    /**
+     * 带花色归并的完整判定（功能牌"模糊小丑"：红桃=方块、梅花=黑桃）。
+     * 默认忽略归并标志；由支持该规则的实现覆写。
+     */
+    default Optional<Evaluation> evaluateDetail(List<Card> selected, boolean mergeSuits) {
+        return evaluateDetail(selected);
+    }
+
     /** 选中的张数/组合是否满足出牌规则（用于出牌按钮亮起校验）。 */
     boolean isPlayable(List<Card> selected);
 }

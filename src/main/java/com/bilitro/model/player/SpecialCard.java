@@ -62,6 +62,44 @@ public interface SpecialCard {
     default void onHandPlayed(com.bilitro.model.hand.HandType handType) {
     }
 
-    // TODO(答复 1/3): 手牌数量、出牌/弃牌次数的修改类效果，建议在配置表中加
-    //  passive 修饰字段（如 handSizeDelta / playsDelta），由 GameSession 开局时汇总生效。
+    /**
+     * 一次弃牌完成后由对局调用：弃牌成长类功能牌在此积累
+     * （如"城堡"：每弃掉 1 张指定花色的牌 +3 积分）。
+     */
+    default void onDiscard(java.util.List<com.bilitro.model.card.Card> discarded) {
+    }
+
+    /** 每关开始时由对局调用：按回合变化的效果在此重置（如随机花色功能牌换花色）。 */
+    default void onLevelStart() {
+    }
+
+    /** 元规则：返回 true 表示所有打出的牌都参与计分（"飞溅"）。 */
+    default boolean allCardsScore() {
+        return false;
+    }
+
+    /** 元规则：返回 true 表示红桃=方块、梅花=黑桃（"模糊小丑"，影响同花判定）。 */
+    default boolean mergesSuits() {
+        return false;
+    }
+
+    /** 被动：每关弃牌次数修正（可为负）。 */
+    default int discardsDelta() {
+        return 0;
+    }
+
+    /** 被动：手牌上限修正（可为负）。 */
+    default int handSizeDelta() {
+        return 0;
+    }
+
+    /** 被动：商店可负债额度（"信用卡"：可负债至 -20）。 */
+    default int creditLimit() {
+        return 0;
+    }
+
+    /** 被动：每关通关时额外获得的代币（"黄金小丑"：回合结束 +4）。 */
+    default int levelClearCoins() {
+        return 0;
+    }
 }

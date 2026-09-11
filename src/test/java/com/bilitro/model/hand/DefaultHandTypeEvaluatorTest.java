@@ -132,4 +132,27 @@ class DefaultHandTypeEvaluatorTest {
         assertFalse(evaluator.isPlayable(six));
         assertTrue(evaluator.evaluateDetail(six).isEmpty());
     }
+
+    @Test
+    void 模糊小丑让红桃方块同花() {
+        // 3 红桃 + 2 方块：普通判定不是同花；归并后（红桃=方块）是同花
+        List<Card> cards = List.of(
+                c(Suit.HEART, Rank.TWO), c(Suit.DIAMOND, Rank.FIVE),
+                c(Suit.HEART, Rank.SEVEN), c(Suit.DIAMOND, Rank.NINE),
+                c(Suit.HEART, Rank.JACK));
+        assertNotEquals(HandType.FLUSH, evaluator.evaluateDetail(cards).orElseThrow().type());
+        assertEquals(HandType.FLUSH,
+                evaluator.evaluateDetail(cards, true).orElseThrow().type());
+    }
+
+    @Test
+    void 判定结果带打出的全部牌() {
+        // 对子 + 散牌：计分牌 2 张，打出牌 3 张
+        List<Card> cards = List.of(
+                c(Suit.SPADE, Rank.TEN), c(Suit.HEART, Rank.TEN),
+                c(Suit.CLUB, Rank.TWO));
+        var eval = evaluator.evaluateDetail(cards).orElseThrow();
+        assertEquals(2, eval.scoringCards().size());
+        assertEquals(3, eval.playedCards().size());
+    }
 }

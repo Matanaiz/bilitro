@@ -29,6 +29,8 @@ public final class ScoringContext {
     private boolean allFaceCards;
     /** 当前持有的功能牌数量（"每有一张功能牌"类效果用）。 */
     private int specialCount;
+    /** 本次打出的全部手牌（"花盆"等按整手花色判定的效果用）。 */
+    private java.util.List<Card> playedCards;
 
     public ScoringContext(int baseChips, int baseMult) {
         this(baseChips, baseMult, null);
@@ -79,6 +81,16 @@ public final class ScoringContext {
     /** 返回当前持有的功能牌数量。 */
     public int specialCount() {
         return specialCount;
+    }
+
+    /** 由计分器在计分前设置：本次打出的全部手牌。 */
+    public void setPlayedCards(java.util.List<Card> playedCards) {
+        this.playedCards = playedCards;
+    }
+
+    /** 返回本次打出的全部手牌。 */
+    public java.util.List<Card> playedCards() {
+        return playedCards;
     }
 
     public int chips() {

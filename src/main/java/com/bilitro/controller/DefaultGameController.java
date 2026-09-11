@@ -60,7 +60,7 @@ public class DefaultGameController implements GameController {
     /** 出牌：先在中间区域逐张播放计分过程，播完再落账并检查结局。 */
     @Override
     public void onPlay() {
-        var eval = evaluator.evaluateDetail(selected);
+        var eval = evaluate(selected);
         if (eval.isEmpty()) {
             return;
         }
@@ -74,6 +74,21 @@ public class DefaultGameController implements GameController {
             refresh();
             checkOutcome();
         });
+    }
+
+    /**
+     * 判定选中牌（与对局口径一致）：花色归并（模糊小丑）参与牌型判定；
+     * 持有"飞溅"时计分牌扩展为全部打出的牌。
+     */
+    private java.util.Optional<com.bilitro.model.hand.Evaluation> evaluate(List<Card> cards) {
+        boolean merge = session.player().specialCards().stream().anyMatch(SpecialCard::mergesSuits);
+        var eval = evaluator.evaluateDetail(cards, merge);
+        boolean splash = session.player().specialCards().stream().anyMatch(SpecialCard::allCardsScore);
+        if (splash && eval.isPresent()) {
+            return java.util.Optional.of(new com.bilitro.model.hand.Evaluation(
+                    eval.get().type(), List.copyOf(cards), List.copyOf(cards)));
+        }
+        return eval;
     }
 
     /** 弃牌：次数为 0 时无响应。 */
@@ -121,7 +136,7 @@ public class DefaultGameController implements GameController {
      * （手牌逐张触发后在动画中逐步增长），否则清空预览。
      */
     private void refreshPreview() {
-        var eval = evaluator.evaluateDetail(selected);
+        var eval = evaluate(selected);
         if (eval.isEmpty()) {
             view.renderPreview(null, null, null);
             return;

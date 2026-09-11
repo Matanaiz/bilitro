@@ -1,13 +1,18 @@
 package com.bilitro.model.game;
 
 import com.bilitro.model.GameConfig;
+import com.bilitro.model.card.Card;
 import com.bilitro.model.card.Deck;
 import com.bilitro.model.card.StandardDeck;
 import com.bilitro.model.hand.DefaultHandTypeEvaluator;
 import com.bilitro.model.hand.DefaultScoreCalculator;
+import com.bilitro.model.hand.Evaluation;
+import com.bilitro.model.player.ConfiguredSpecialCard;
 import com.bilitro.model.player.DefaultPlayer;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -95,6 +100,57 @@ class DefaultGameSessionTest {
         assertEquals(2, reward.interest());
         assertEquals(9, reward.total());
         assertEquals(19, player.coins());
+    }
+
+    @Test
+    void 黄金小丑通关时额外给代币() {
+        DefaultPlayer player = new DefaultPlayer(10);
+        GameSession s = new DefaultGameSession(new StandardDeck(),
+                new DefaultHandTypeEvaluator(), new DefaultScoreCalculator(),
+                player, new LevelRule(1, Set.of(), "测试关"));
+        player.addSpecialCard(new ConfiguredSpecialCard("golden_joker", "黄金小丑", "", 6, "",
+                ConfiguredSpecialCard.EffectType.ADD_CHIPS, 0,
+                ConfiguredSpecialCard.ConditionType.ALWAYS, null,
+                ConfiguredSpecialCard.GrowthType.NONE, 0,
+                ConfiguredSpecialCard.SuitMode.NONE, 0, 0, 0, 4));
+        s.play(s.hand().subList(0, 1)); // 剩 3 次出牌
+        var reward = s.claimLevelClearReward();
+        // 4 固定 + 3 剩余出牌 + 2 利息 + 4 黄金小丑 = 13
+        assertEquals(4, reward.cardBonus());
+        assertEquals(13, reward.total());
+        assertEquals(23, player.coins());
+    }
+
+    @Test
+    void 醉汉增加每关弃牌次数() {
+        DefaultPlayer player = new DefaultPlayer();
+        GameSession s = new DefaultGameSession(new StandardDeck(),
+                new DefaultHandTypeEvaluator(), new DefaultScoreCalculator(),
+                player, new LevelRule(1, Set.of(), "第一关"));
+        player.addSpecialCard(new ConfiguredSpecialCard("drunkard", "醉汉", "", 4, "",
+                ConfiguredSpecialCard.EffectType.ADD_CHIPS, 0,
+                ConfiguredSpecialCard.ConditionType.ALWAYS, null,
+                ConfiguredSpecialCard.GrowthType.NONE, 0,
+                ConfiguredSpecialCard.SuitMode.NONE, 1, 0, 0, 0));
+        s.advanceLevel(new LevelRule(1, Set.of(), "第二关"));
+        assertEquals(GameConfig.DISCARDS_PER_LEVEL + 1, s.remainingDiscards());
+    }
+
+    @Test
+    void 飞溅让所有打出的牌参与计分() {
+        DefaultPlayer player = new DefaultPlayer();
+        GameSession s = new DefaultGameSession(new StandardDeck(),
+                new DefaultHandTypeEvaluator(), new DefaultScoreCalculator(),
+                player, new LevelRule(Integer.MAX_VALUE, Set.of(), "测试关"));
+        player.addSpecialCard(new ConfiguredSpecialCard("splash", "飞溅", "", 3, "",
+                ConfiguredSpecialCard.EffectType.ADD_CHIPS, 0,
+                ConfiguredSpecialCard.ConditionType.META_ALL_SCORE, null));
+        List<Card> five = new ArrayList<>(s.hand().subList(0, 5));
+        // 期望：计分牌 = 全部 5 张打出的牌
+        var eval = new DefaultHandTypeEvaluator().evaluateDetail(five).orElseThrow();
+        int expected = new DefaultScoreCalculator().score(
+                new Evaluation(eval.type(), five, five), player.specialCards()).finalScore();
+        assertEquals(expected, s.play(five).score());
     }
 
     @Test

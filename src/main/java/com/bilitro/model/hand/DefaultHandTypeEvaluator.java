@@ -28,17 +28,28 @@ public class DefaultHandTypeEvaluator implements HandTypeEvaluator {
     /** 完整判定：从最高牌型开始逐级尝试，返回牌型与参与计分的手牌。 */
     @Override
     public Optional<Evaluation> evaluateDetail(List<Card> selected) {
+        return evaluateDetail(selected, false);
+    }
+
+    /** 带花色归并的完整判定：mergeSuits 为 true 时红桃=方块、梅花=黑桃（模糊小丑）。 */
+    @Override
+    public Optional<Evaluation> evaluateDetail(List<Card> selected, boolean mergeSuits) {
         if (!isPlayable(selected)) {
             return Optional.empty();
         }
         List<Card> cards = new ArrayList<>(selected);
         Map<Rank, List<Card>> byRank = groupByRank(cards);
 
-        Optional<Evaluation> result = matchFiveCardTypes(cards, byRank);
+        Optional<Evaluation> result = matchFiveCardTypes(cards, byRank, mergeSuits);
         if (result.isPresent()) {
-            return result;
+            return withPlayedCards(result.get(), cards);
         }
-        return matchRankGroups(cards, byRank);
+        return withPlayedCards(matchRankGroups(cards, byRank).orElseThrow(), cards);
+    }
+
+    /** 给判定结果补上"打出的全部牌"信息。 */
+    private Optional<Evaluation> withPlayedCards(Evaluation eval, List<Card> played) {
+        return Optional.of(new Evaluation(eval.type(), eval.scoringCards(), played));
     }
 
     /** 校验选中张数是否在出牌规则范围内（1~5 张）。 */
@@ -53,8 +64,9 @@ public class DefaultHandTypeEvaluator implements HandTypeEvaluator {
      * 匹配需要 5 张牌的牌型：同花顺、四条、葫芦、同花、顺子。
      * 不足 5 张或不构成时返回 empty。
      */
-    private Optional<Evaluation> matchFiveCardTypes(List<Card> cards, Map<Rank, List<Card>> byRank) {
-        boolean flush = isFlush(cards);
+    private Optional<Evaluation> matchFiveCardTypes(List<Card> cards, Map<Rank, List<Card>> byRank,
+                                                    boolean mergeSuits) {
+        boolean flush = isFlush(cards, mergeSuits);
         boolean straight = isStraight(cards);
         if (straight && flush) {
             return Optional.of(new Evaluation(HandType.STRAIGHT_FLUSH, cards));
@@ -99,10 +111,23 @@ public class DefaultHandTypeEvaluator implements HandTypeEvaluator {
         return Optional.of(new Evaluation(HandType.HIGH_CARD, List.of(highestCard(cards))));
     }
 
-    /** 判断是否为同花：5 张且花色全部相同。 */
-    private boolean isFlush(List<Card> cards) {
-        return cards.size() == 5
-                && cards.stream().allMatch(c -> c.suit() == cards.get(0).suit());
+    /** 判断是否为同花：5 张且花色全部相同；mergeSuits 时按色系归并（红桃=方块、梅花=黑桃）。 */
+    private boolean isFlush(List<Card> cards, boolean mergeSuits) {
+        if (cards.size() != 5) {
+            return false;
+        }
+        if (!mergeSuits) {
+            return cards.stream().allMatch(c -> c.suit() == cards.get(0).suit());
+        }
+        return cards.stream().allMatch(c -> suitGroup(c.suit()) == suitGroup(cards.get(0).suit()));
+    }
+
+    /** 花色归并分组：红桃/方块同组，梅花/黑桃同组。 */
+    private int suitGroup(com.bilitro.model.card.Suit suit) {
+        return switch (suit) {
+            case HEART, DIAMOND -> 0;
+            case CLUB, SPADE -> 1;
+        };
     }
 
     /** 判断是否为顺子：5 张点数连续（A 只算 14，不算 1）。 */

@@ -64,13 +64,14 @@ public class RandomShop implements Shop {
         }
     }
 
-    /** 购买：依次校验栏位上限与货币，成功后扣款、进货、下架该商品。 */
+    /** 购买：依次校验栏位上限与货币（含"信用卡"负债额度），成功后扣款、进货、下架该商品。 */
     @Override
     public BuyResult buy(SpecialCard item) {
         if (player.specialCards().size() >= GameConfig.SPECIAL_CARD_LIMIT) {
             return BuyResult.SLOTS_FULL;
         }
-        if (player.coins() < item.price()) {
+        int credit = player.specialCards().stream().mapToInt(SpecialCard::creditLimit).sum();
+        if (player.coins() - item.price() < -credit) {
             return BuyResult.NOT_ENOUGH_COINS;
         }
         player.addCoins(-item.price());
@@ -79,10 +80,13 @@ public class RandomShop implements Shop {
         return BuyResult.SUCCESS;
     }
 
-    /** 从功能牌池随机抽取一批商品。 */
+    /** 从功能牌池随机抽取一批商品：已持有的功能牌不再出现。 */
     private void rollGoods() {
         goods.clear();
-        List<SpecialCard> shuffled = new ArrayList<>(pool);
+        List<String> ownedIds = player.specialCards().stream().map(SpecialCard::id).toList();
+        List<SpecialCard> shuffled = new ArrayList<>(pool.stream()
+                .filter(c -> !ownedIds.contains(c.id()))
+                .toList());
         Collections.shuffle(shuffled);
         goods.addAll(shuffled.stream().limit(GOODS_COUNT).toList());
     }

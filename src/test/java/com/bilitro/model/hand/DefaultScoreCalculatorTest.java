@@ -249,4 +249,58 @@ class DefaultScoreCalculatorTest {
         assertEquals(260, third.finalScore());
         assertEquals(2, growing.growthStacks());
     }
+
+    @Test
+    void 偶数史蒂文只给偶数牌加倍率() {
+        // 对子 4+4：两张都是偶数，倍率 2+8=10
+        var result = calculator.score(
+                eval(HandType.PAIR, c(Rank.FOUR), c(Rank.FOUR)),
+                List.of(joker("even_steven", ConfiguredSpecialCard.EffectType.ADD_MULT, 4,
+                        ConfiguredSpecialCard.ConditionType.SCORING_RANKS,
+                        "TWO,FOUR,SIX,EIGHT,TEN")));
+        assertEquals(10, result.finalMult());
+    }
+
+    @Test
+    void 花盆要求打出的牌四花色齐全() {
+        // 打出 5 张四花色齐全（高牌只计 A）：倍率 1×3=3
+        List<Card> played = List.of(
+                new Card(Suit.HEART, Rank.ACE), new Card(Suit.SPADE, Rank.TWO),
+                new Card(Suit.CLUB, Rank.THREE), new Card(Suit.DIAMOND, Rank.FOUR),
+                new Card(Suit.HEART, Rank.FIVE));
+        var full = calculator.score(
+                new Evaluation(HandType.HIGH_CARD, List.of(played.get(0)), played),
+                List.of(joker("flower_pot", ConfiguredSpecialCard.EffectType.MULTIPLY_MULT, 3,
+                        ConfiguredSpecialCard.ConditionType.HAND_ALL_SUITS, null)));
+        assertEquals(3, full.finalMult());
+        // 缺黑桃：不触发
+        List<Card> missing = List.of(
+                new Card(Suit.HEART, Rank.ACE), new Card(Suit.HEART, Rank.TWO),
+                new Card(Suit.CLUB, Rank.THREE), new Card(Suit.DIAMOND, Rank.FOUR),
+                new Card(Suit.HEART, Rank.FIVE));
+        var lack = calculator.score(
+                new Evaluation(HandType.HIGH_CARD, List.of(missing.get(0)), missing),
+                List.of(joker("flower_pot", ConfiguredSpecialCard.EffectType.MULTIPLY_MULT, 3,
+                        ConfiguredSpecialCard.ConditionType.HAND_ALL_SUITS, null)));
+        assertEquals(1, lack.finalMult());
+    }
+
+    @Test
+    void 城堡按弃掉的指定花色牌积累积分() {
+        var castle = new ConfiguredSpecialCard("castle", "城堡", "", 6, "",
+                ConfiguredSpecialCard.EffectType.ADD_CHIPS, 0,
+                ConfiguredSpecialCard.ConditionType.ALWAYS, null,
+                ConfiguredSpecialCard.GrowthType.PER_DISCARD, 3,
+                ConfiguredSpecialCard.SuitMode.PER_LEVEL, 0, 0, 0, 0);
+        castle.onLevelStart(); // 抽取本关花色
+        // 弃掉四花色各一张：无论抽中哪个花色都恰好积累 1 次
+        castle.onDiscard(List.of(
+                new Card(Suit.HEART, Rank.TWO), new Card(Suit.SPADE, Rank.TWO),
+                new Card(Suit.CLUB, Rank.TWO), new Card(Suit.DIAMOND, Rank.TWO)));
+        assertEquals(1, castle.growthStacks());
+        // 计分时 +3 积分
+        var result = calculator.score(
+                eval(HandType.PAIR, c(Rank.TEN), c(Rank.TEN)), List.of(castle));
+        assertEquals(3, result.bonusChips());
+    }
 }

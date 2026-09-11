@@ -53,6 +53,7 @@ public class DefaultScoreCalculator implements ScoreCalculator {
         boolean allFace = allCardsFace(specials);
         ctx.setAllFaceCards(allFace);
         ctx.setSpecialCount(specials.size());
+        ctx.setPlayedCards(eval.playedCards());
 
         List<ScoreStep> steps = new ArrayList<>();
         boolean first = true;

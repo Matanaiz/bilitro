@@ -103,10 +103,14 @@ public class DefaultGameSession implements GameSession {
      */
     @Override
     public PlayResult play(List<Card> selected) {
-        Evaluation eval = evaluator.evaluateDetail(selected)
+        Evaluation eval = evaluator.evaluateDetail(selected, mergesSuits())
                 .orElseThrow(() -> new IllegalArgumentException("所选牌不满足出牌规则"));
         if (remainingPlays <= 0) {
             throw new IllegalStateException("剩余出牌次数为 0");
+        }
+        // 飞溅：持有"所有打出的牌都参与计分"的功能牌时，计分牌扩展为全部打出的牌
+        if (allCardsScore()) {
+            eval = new Evaluation(eval.type(), List.copyOf(selected), List.copyOf(selected));
         }
         var breakdown = calculator.score(eval, player.specialCards());
         remainingPlays--;
@@ -128,6 +132,10 @@ public class DefaultGameSession implements GameSession {
         }
         remainingDiscards--;
         replaceCards(selected);
+        // 弃牌成长类功能牌：弃牌完成后积累（如"城堡"）
+        for (SpecialCard special : player.specialCards()) {
+            special.onDiscard(List.copyOf(selected));
+        }
     }
 
     /** 按结束判定流程图判断当前对局结局。 */
@@ -139,13 +147,14 @@ public class DefaultGameSession implements GameSession {
         return remainingPlays <= 0 ? RoundOutcome.FAILED : RoundOutcome.ONGOING;
     }
 
-    /** 结算并发放通关奖励：固定奖励 + 剩余出牌奖励 + 利息，返回奖励明细。 */
+    /** 结算并发放通关奖励：固定奖励 + 剩余出牌奖励 + 利息 + 功能牌奖励，返回奖励明细。 */
     @Override
     public RewardBreakdown claimLevelClearReward() {
         RewardBreakdown reward = new RewardBreakdown(
                 GameConfig.LEVEL_CLEAR_REWARD,
                 remainingPlays * GameConfig.COIN_PER_REMAINING_PLAY,
-                player.coins() / GameConfig.INTEREST_EVERY_N_COINS);
+                player.coins() / GameConfig.INTEREST_EVERY_N_COINS,
+                player.specialCards().stream().mapToInt(SpecialCard::levelClearCoins).sum());
         player.addCoins(reward.total());
         return reward;
     }
@@ -157,16 +166,33 @@ public class DefaultGameSession implements GameSession {
         startLevel(rule);
     }
 
-    /** 加载关卡规则：重置目标分、本关得分、次数、牌组与手牌。 */
+    /** 加载关卡规则：重置目标分、本关得分、次数、牌组与手牌（含功能牌被动修正）。 */
     private void startLevel(LevelRule rule) {
         this.rule = rule;
         this.remainingTargetScore = rule.targetScore();
         this.totalScore = 0; // 本关总分清零
         this.remainingPlays = GameConfig.PLAYS_PER_LEVEL;
-        this.remainingDiscards = GameConfig.DISCARDS_PER_LEVEL;
+        this.remainingDiscards = GameConfig.DISCARDS_PER_LEVEL
+                + player.specialCards().stream().mapToInt(SpecialCard::discardsDelta).sum();
+        // 按回合变化的功能牌效果（如随机花色）在每关开始时重置
+        for (SpecialCard special : player.specialCards()) {
+            special.onLevelStart();
+        }
         deck.reset(rule.bannedSuits());
         hand.clear();
-        hand.addAll(deck.draw(GameConfig.HAND_SIZE));
+        int handSize = GameConfig.HAND_SIZE
+                + player.specialCards().stream().mapToInt(SpecialCard::handSizeDelta).sum();
+        hand.addAll(deck.draw(Math.max(1, handSize)));
+    }
+
+    /** 是否持有"所有打出的牌都参与计分"的功能牌（飞溅）。 */
+    private boolean allCardsScore() {
+        return player.specialCards().stream().anyMatch(SpecialCard::allCardsScore);
+    }
+
+    /** 是否持有花色归并的功能牌（模糊小丑）。 */
+    private boolean mergesSuits() {
+        return player.specialCards().stream().anyMatch(SpecialCard::mergesSuits);
     }
 
     /** 从手牌移除已使用的牌，并从牌组补等量牌。 */

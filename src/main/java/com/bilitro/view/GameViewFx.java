@@ -359,6 +359,7 @@ public class GameViewFx implements GameView {
                 + "过关奖励 +" + reward.base() + "\n"
                 + "剩余出牌次数奖励 +" + reward.playBonus() + "\n"
                 + "利息奖励 +" + reward.interest() + "\n"
+                + (reward.cardBonus() > 0 ? "功能牌奖励 +" + reward.cardBonus() + "\n" : "")
                 + "合计 +" + reward.total() + " 代币";
         alert("过关！", content);
     }
