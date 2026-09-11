@@ -125,13 +125,27 @@ public class ConfiguredSpecialCard implements SpecialCard {
         return name;
     }
 
-    /** 返回效果描述文本（查看浮层用）；成长类牌会附上当前已积累的加成。 */
+    /** 返回效果描述文本（查看浮层用）；随机花色牌显示当前花色，成长类牌附上已积累的加成。 */
     @Override
     public String description() {
-        if (growthType != GrowthType.NONE && growthStacks > 0) {
-            return description + "（已积累 +" + (int) (growthStacks * growthValue) + "）";
+        String text = description;
+        if (suitMode != SuitMode.NONE) {
+            text += "（当前花色：" + suitText(rolledSuit()) + "）";
         }
-        return description;
+        if (growthType != GrowthType.NONE && growthStacks > 0) {
+            text += "（已积累 +" + (int) (growthStacks * growthValue) + "）";
+        }
+        return text;
+    }
+
+    /** 花色的中文显示名。 */
+    private static String suitText(Suit suit) {
+        return switch (suit) {
+            case SPADE -> "黑桃";
+            case HEART -> "红桃";
+            case CLUB -> "梅花";
+            case DIAMOND -> "方块";
+        };
     }
 
     /** 返回商店价格。 */

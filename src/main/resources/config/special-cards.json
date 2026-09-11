@@ -189,14 +189,14 @@
   {
     "id": "ancient_joker",
     "name": "古老小丑",
-    "description": "每张打出的指定花色的牌计分时给予 ×1.5 倍率（花色随机，确定后永久不变）",
+    "description": "每张打出的指定花色的牌计分时给予 ×1.5 倍率，花色每关变化",
     "price": 8,
     "image": "",
     "effectType": "MULTIPLY_MULT",
     "effectValue": 1.5,
     "conditionType": "SCORING_SUIT",
     "conditionValue": "RANDOM",
-    "suitMode": "PERMANENT"
+    "suitMode": "PER_LEVEL"
   },
   {
     "id": "tribe",
