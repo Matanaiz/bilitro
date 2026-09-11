@@ -334,19 +334,33 @@ public class GameViewFx implements GameView {
         deckCountLabel.setText(String.valueOf(remaining));
     }
 
-    /** 刷新功能牌栏：扑克牌样式控件，点击缩放反馈并弹出效果说明。 */
+    /** 刷新功能牌栏：固定预留 6 个深色卡槽（上限见 GameConfig），每持有一张牌填入一个槽，整体居中。 */
     public void renderSpecialCards(List<SpecialCard> specials) {
         specialArea.getChildren().clear();
-        for (SpecialCard s : specials) {
-            SpecialCardNode node = new SpecialCardNode(s);
-            node.setOnMouseClicked(e -> {
-                node.setScaleX(0.88);
-                node.setScaleY(0.88);
-                controller.onInspectSpecialCard(s.id());
-                node.setScaleX(1);
-                node.setScaleY(1);
-            });
-            specialArea.getChildren().add(node);
+        specialArea.setAlignment(Pos.CENTER);
+        int limit = com.bilitro.model.GameConfig.SPECIAL_CARD_LIMIT;
+        for (int i = 0; i < limit; i++) {
+            StackPane slot = new StackPane();
+            slot.setPrefSize(78, 108);
+            slot.setMinSize(78, 108);
+            slot.setMaxSize(78, 108);
+            // 空卡槽：深色半透明底 + 虚线边框，表示可填位置
+            slot.setStyle("-fx-background-color: rgba(0,0,0,0.35); -fx-background-radius: 8;"
+                    + "-fx-border-color: rgba(255,255,255,0.25); -fx-border-width: 2;"
+                    + "-fx-border-style: dashed; -fx-border-radius: 8;");
+            if (i < specials.size()) {
+                SpecialCard s = specials.get(i);
+                SpecialCardNode node = new SpecialCardNode(s);
+                node.setOnMouseClicked(e -> {
+                    node.setScaleX(0.88);
+                    node.setScaleY(0.88);
+                    controller.onInspectSpecialCard(s.id());
+                    node.setScaleX(1);
+                    node.setScaleY(1);
+                });
+                slot.getChildren().add(node);
+            }
+            specialArea.getChildren().add(slot);
         }
     }
 
