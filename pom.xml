@@ -47,10 +47,15 @@
                 </configuration>
             </plugin>
             <!-- JaCoCo 覆盖率：mvn test 后自动生成 HTML 报告 target/site/jacoco/index.html -->
+            <!-- 注意：项目路径含中文时 agent 的 destfile 必须用纯英文路径，否则数据文件写不出来 -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.12</version>
+                <configuration>
+                    <destFile>${user.home}/jacoco-bilitro.exec</destFile>
+                    <dataFile>${user.home}/jacoco-bilitro.exec</dataFile>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>
