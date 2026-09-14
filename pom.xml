@@ -66,6 +66,15 @@
                     </execution>
                 </executions>
             </plugin>
+            <!-- surefire：禁用 manifest-only JAR，修复中文路径下 fork 测试 JVM 失败的问题 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+                <configuration>
+                    <useManifestOnlyJar>false</useManifestOnlyJar>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>
