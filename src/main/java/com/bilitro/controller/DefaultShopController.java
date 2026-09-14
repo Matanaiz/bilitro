@@ -3,20 +3,20 @@ package com.bilitro.controller;
 import com.bilitro.model.player.Player;
 import com.bilitro.model.player.SpecialCard;
 import com.bilitro.model.shop.Shop;
-import com.bilitro.view.ShopViewFx;
+import com.bilitro.view.ShopView;
 
 /** 默认商店控制器：接收商店界面事件，调用 Shop，按购买结果提示。 */
 public class DefaultShopController implements ShopController {
 
     private final Shop shop;
     private final Player player;
-    private final ShopViewFx view;
+    private final ShopView view;
 
     /** 离开商店回调（进入下一关），由 App 注入。 */
     private Runnable leaveHandler = () -> { };
 
     /** 创建商店控制器并刷新一次界面。 */
-    public DefaultShopController(Shop shop, Player player, ShopViewFx view) {
+    public DefaultShopController(Shop shop, Player player, ShopView view) {
         this.shop = shop;
         this.player = player;
         this.view = view;

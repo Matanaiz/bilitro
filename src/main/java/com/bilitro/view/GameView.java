@@ -1,6 +1,8 @@
 package com.bilitro.view;
 
 import com.bilitro.model.card.Card;
+import com.bilitro.model.hand.ScoreCalculator;
+import com.bilitro.model.player.SpecialCard;
 import java.util.List;
 
 /**
@@ -31,4 +33,25 @@ public interface GameView {
 
     /** 弹通关结算弹窗：本关得分与代币奖励明细（过关奖励、剩余出牌奖励、利息奖励）。 */
     void showLevelClearReward(int levelScore, com.bilitro.model.game.GameSession.RewardBreakdown reward);
+
+    /** 刷新计分预览：显示选中牌型的初始分数与初始倍数；无可出牌型时清空。 */
+    void renderPreview(String handTypeName, Integer chips, Integer mult);
+
+    /** 刷新关卡进度：当前关卡与本关累计得分。 */
+    void renderProgress(int level, int totalScore);
+
+    /** 刷新剩余牌组张数显示。 */
+    void renderDeckCount(int remaining);
+
+    /** 刷新功能牌栏（六槽位）。 */
+    void renderSpecialCards(List<SpecialCard> specials);
+
+    /** 清空中间计分过程区（通关/刷新时调用）。 */
+    void clearProcess();
+
+    /**
+     * 播放计分过程：在中间区域从左到右逐张摆出计分手牌，
+     * 左侧当前积分与当前倍数随每一步增长；全部播完后执行 onFinished。
+     */
+    void playScoringProcess(List<ScoreCalculator.ScoreStep> steps, Runnable onFinished);
 }

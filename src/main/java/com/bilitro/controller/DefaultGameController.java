@@ -6,7 +6,7 @@ import com.bilitro.model.game.GameSession;
 import com.bilitro.model.hand.HandTypeEvaluator;
 import com.bilitro.model.hand.ScoreCalculator;
 import com.bilitro.model.player.SpecialCard;
-import com.bilitro.view.GameViewFx;
+import com.bilitro.view.GameView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +21,7 @@ public class DefaultGameController implements GameController {
     private final GameSession session;
     private final HandTypeEvaluator evaluator;
     private final ScoreCalculator calculator;
-    private final GameViewFx view;
+    private final GameView view;
     private final List<Card> selected = new ArrayList<>();
 
     /** 对局结局回调（LEVEL_CLEARED/VICTORY/FAILED），由 App 注入做场景切换。 */
@@ -29,7 +29,7 @@ public class DefaultGameController implements GameController {
 
     /** 创建控制器并刷新一次界面。 */
     public DefaultGameController(GameSession session, HandTypeEvaluator evaluator,
-                                 ScoreCalculator calculator, GameViewFx view) {
+                                 ScoreCalculator calculator, GameView view) {
         this.session = session;
         this.evaluator = evaluator;
         this.calculator = calculator;
