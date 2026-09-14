@@ -6,6 +6,8 @@ import com.bilitro.model.card.Suit;
 import com.bilitro.model.player.ConfiguredSpecialCard;
 import com.bilitro.model.player.SpecialCard;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.util.List;
 
@@ -37,6 +39,16 @@ class DefaultScoreCalculatorTest {
                                      double value, ConfiguredSpecialCard.ConditionType cond,
                                      String condValue) {
         return new ConfiguredSpecialCard(id, id, id, 1, "", effect, value, cond, condValue);
+    }
+
+    /** 卡牌计分点数符合规则：2~10 按面值，J/Q/K 计 10，A 计 11（查表式场景，用参数化并列）。 */
+    @ParameterizedTest
+    @CsvSource({
+            "ACE,  11",
+            "KING, 10"
+    })
+    void 卡牌计分点数符合规则(Rank rank, int chips) {
+        assertEquals(chips, rank.chips());
     }
 
     @Test

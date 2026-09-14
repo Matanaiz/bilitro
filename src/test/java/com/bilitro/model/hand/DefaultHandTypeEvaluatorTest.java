@@ -4,6 +4,8 @@ import com.bilitro.model.card.Card;
 import com.bilitro.model.card.Rank;
 import com.bilitro.model.card.Suit;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.util.List;
 
@@ -17,6 +19,17 @@ class DefaultHandTypeEvaluatorTest {
     /** 构造一张牌的简写。 */
     private static Card c(Suit suit, Rank rank) {
         return new Card(suit, rank);
+    }
+
+    /** 牌型初始分数与倍数符合对照表（查表式场景，用参数化并列）。 */
+    @ParameterizedTest
+    @CsvSource({
+            "PAIR,           10, 2",
+            "STRAIGHT_FLUSH, 100, 8"
+    })
+    void 牌型初始分数与倍数符合对照表(HandType type, int baseScore, int baseMultiplier) {
+        assertEquals(baseScore, type.baseScore());
+        assertEquals(baseMultiplier, type.baseMultiplier());
     }
 
     @Test
