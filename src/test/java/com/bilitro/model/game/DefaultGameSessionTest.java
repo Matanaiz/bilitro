@@ -58,6 +58,50 @@ class DefaultGameSessionTest {
     }
 
     @Test
+    void 弃牌次数为零时再弃牌抛异常() {
+        GameSession s = newSession(10000);
+        for (int i = 0; i < GameConfig.DISCARDS_PER_LEVEL; i++) {
+            s.discard(s.hand().subList(0, 1));
+        }
+        assertThrows(IllegalStateException.class, () -> s.discard(s.hand().subList(0, 1)));
+    }
+
+    @Test
+    void 查看牌组剩余随出牌减少() {
+        GameSession s = newSession(10000);
+        int before = s.remainingDeck().size();
+        s.play(s.hand().subList(0, 2));
+        assertEquals(before - 2, s.remainingDeck().size());
+    }
+
+    @Test
+    void 进入下一关后本关总分清零() {
+        GameSession s = newSession(10000);
+        s.play(s.hand().subList(0, 1));
+        assertTrue(s.levelScore() > 0);
+        s.advanceLevel(new LevelRule(10000, Set.of(), "第二关"));
+        assertEquals(0, s.levelScore());
+        assertEquals(2, s.currentLevel());
+        assertEquals(10000, s.targetScore());
+    }
+
+    @Test
+    void 快乐安迪增加弃牌并减少手牌上限() {
+        DefaultPlayer player = new DefaultPlayer();
+        GameSession s = new DefaultGameSession(new StandardDeck(),
+                new DefaultHandTypeEvaluator(), new DefaultScoreCalculator(),
+                player, new LevelRule(1, Set.of(), "第一关"));
+        player.addSpecialCard(new ConfiguredSpecialCard("jolly_andy", "快乐安迪", "", 7, "",
+                ConfiguredSpecialCard.EffectType.ADD_CHIPS, 0,
+                ConfiguredSpecialCard.ConditionType.ALWAYS, null,
+                ConfiguredSpecialCard.GrowthType.NONE, 0,
+                ConfiguredSpecialCard.SuitMode.NONE, 3, -1, 0, 0));
+        s.advanceLevel(new LevelRule(1, Set.of(), "第二关"));
+        assertEquals(GameConfig.DISCARDS_PER_LEVEL + 3, s.remainingDiscards());
+        assertEquals(GameConfig.HAND_SIZE - 1, s.hand().size());
+    }
+
+    @Test
     void 达标即过关() {
         GameSession s = newSession(1); // 目标分极低，任意出牌即达标
         s.play(s.hand().subList(0, 1));

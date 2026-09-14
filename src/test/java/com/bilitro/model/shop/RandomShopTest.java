@@ -58,4 +58,43 @@ class RandomShopTest {
         assertEquals(Shop.BuyResult.SUCCESS, shop.buy(item));
         assertEquals(-item.price(), player.coins());
     }
+
+    @Test
+    void 出售功能牌按半价返还() {
+        DefaultPlayer player = new DefaultPlayer(10);
+        RandomShop shop = new RandomShop(player);
+        SpecialCard item = shop.goods().get(0);
+        shop.buy(item);
+        int coinsAfterBuy = player.coins();
+        shop.sell(item);
+        assertEquals(coinsAfterBuy + item.price() / 2, player.coins());
+        assertTrue(player.specialCards().isEmpty());
+    }
+
+    @Test
+    void 代币不足时刷新失败且不扣费() {
+        DefaultPlayer player = new DefaultPlayer(1); // 刷新费 2，不够
+        RandomShop shop = new RandomShop(player);
+        assertFalse(shop.refresh());
+        assertEquals(1, player.coins());
+    }
+
+    @Test
+    void 刷新成功后费用递增() {
+        DefaultPlayer player = new DefaultPlayer(100);
+        RandomShop shop = new RandomShop(player);
+        int cost = shop.refreshCost();
+        assertTrue(shop.refresh());
+        assertEquals(cost + 3, shop.refreshCost());
+    }
+
+    @Test
+    void 功能牌栏满时购买失败() {
+        DefaultPlayer player = new DefaultPlayer(100);
+        for (int i = 0; i < 6; i++) {
+            player.addSpecialCard(card("filler" + i, 1));
+        }
+        RandomShop shop = new RandomShop(player);
+        assertEquals(Shop.BuyResult.SLOTS_FULL, shop.buy(shop.goods().get(0)));
+    }
 }
